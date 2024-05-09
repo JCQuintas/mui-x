@@ -44,14 +44,17 @@ const ChartId = (props: ChartProps<typeof multiDatasetWithId>) => {
 const Render = () => {
   return (
     <>
-      <Chart dataset={multiDataset} series={[{ dataIndex: 0, seriesKey: 'x', label: 'Goals' }]} />
+      <Chart
+        dataset={multiDataset}
+        series={[{ datasetIndex: 0, seriesKey: 'x', label: 'Goals' }]}
+      />
       <ChartId
         dataset={multiDatasetWithId}
         series={[
-          { dataIndex: 'third', seriesKey: 'x', label: 'Goals' },
-          { dataIndex: 0, seriesKey: 0, label: 'Goals' },
-          { dataIndex: 'second', seriesKey: 'y', label: 'Goals' },
-          { dataIndex: 1, seriesKey: 1, label: 'Goals' },
+          { datasetIndex: 'third', seriesKey: 'x', label: 'Goals' },
+          { datasetIndex: 0, seriesKey: 0, label: 'Goals' },
+          { datasetIndex: 'second', seriesKey: 'y', label: 'Goals' },
+          { datasetIndex: 1, seriesKey: 1, label: 'Goals' },
         ]}
       />
     </>

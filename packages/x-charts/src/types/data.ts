@@ -46,7 +46,7 @@ export type ChartProps<
 > = {
   dataset: T;
   series: {
-    dataIndex: DI;
+    datasetIndex: DI;
     seriesKey: SK;
     label: string;
   }[];
