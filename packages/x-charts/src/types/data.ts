@@ -3,12 +3,12 @@ export type DatasetWithIndex<T extends CompoundType = CompoundType> = {
   index: string;
 };
 
-type BaseType = number | string | Date | null | undefined | boolean;
+type Primitive = number | string | Date | null | undefined | boolean;
 
 type CompoundType =
-  | BaseType // [1,2,3]
-  | BaseType[] // [[1,2,3],[4,5,6]]
-  | { [key: string]: BaseType }; // [{x:1,y:2}, {x:3,y:4}]
+  | Primitive // [1,2,3]
+  | Primitive[] // [[1,2,3],[4,5,6]]
+  | { [key: string]: Primitive }; // [{x:1,y:2}, {x:3,y:4}]
 
 export type Dataset<T extends CompoundType = CompoundType> = T[] | T[][] | DatasetWithIndex<T>[];
 // T[][] is for supporting:
@@ -39,15 +39,44 @@ export type ChartProps<
         ? keyof D[number]
         : number
     : T[number] extends ReadonlyArray<infer A>
-      ? A extends ReadonlyArray<any> | BaseType
+      ? A extends ReadonlyArray<any> | Primitive
         ? number
         : keyof A
       : number,
 > = {
+  /**
+   * Dataset to render. It is always an array, but can be an array of primitives, a nested array or an array of objects.
+   *
+   * @see {@link DatasetWithIndex} for information on how to use indexes.
+   * @default []
+   * @example
+   * ```tsx
+   * const dataset = [
+   *   [1, 2, 3],
+   *   [ [4, 5, 6] , [7, 8, 9] ],
+   *   [ { x: 1, y: 2 } , { x: 2, y: 3 } ,
+   * ] as const;
+   * ```
+   */
   dataset: T;
   series: {
-    datasetIndex: DI;
-    seriesKey: SK;
-    label: string;
+    /**
+     * Index of the dataset to use.
+     * @default 0
+     */
+    datasetIndex?: DI;
+    /**
+     * Key of the series to use.
+     * @default 0
+     */
+    seriesKey?: SK;
+    /**
+     * Label used for identifying the series.
+     */
+    label?: string;
+    /**
+     * Stack id to group series together.
+     */
+    stackId?: string;
   }[];
 };
