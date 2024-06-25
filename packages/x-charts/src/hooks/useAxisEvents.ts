@@ -2,7 +2,7 @@ import * as React from 'react';
 import { InteractionContext } from '../context/InteractionProvider';
 import { useCartesianContext } from '../context/CartesianProvider';
 import { isBandScale } from '../internals/isBandScale';
-import { AxisDefaultized } from '../models/axis';
+import { AxisDefaultized, AxisId } from '../models/axis';
 import { getSVGPoint } from '../internals/getSVGPoint';
 import { useSvgRef } from './useSvgRef';
 import { useDrawingArea } from './useDrawingArea';
@@ -31,11 +31,11 @@ export const useAxisEvents = (disableAxisListener: boolean) => {
       return () => {};
     }
 
-    const getUpdate = (axisConfig: AxisDefaultized, mouseValue: number) => {
-      if (usedXAxis === null) {
+    function getNewAxisState(xAxisId: AxisId, axisConfig: AxisDefaultized, mouseValue: number) {
+      if (xAxisId === null) {
         return null;
       }
-      const { scale, data: axisData, reverse } = axisConfig;
+      const { scale, visibleData: axisData, reverse } = axisConfig;
 
       if (!isBandScale(scale)) {
         const value = scale.invert(mouseValue);
@@ -93,7 +93,7 @@ export const useAxisEvents = (disableAxisListener: boolean) => {
         index: dataIndex,
         value: axisData![dataIndex],
       };
-    };
+    }
 
     const handleOut = () => {
       mousePosition.current = {
@@ -118,8 +118,8 @@ export const useAxisEvents = (disableAxisListener: boolean) => {
         dispatch({ type: 'exitChart' });
         return;
       }
-      const newStateX = getUpdate(xAxis[usedXAxis], svgPoint.x);
-      const newStateY = getUpdate(yAxis[usedYAxis], svgPoint.y);
+      const newStateX = getNewAxisState(usedXAxis, xAxis[usedXAxis], svgPoint.x);
+      const newStateY = getNewAxisState(usedXAxis, yAxis[usedYAxis], svgPoint.y);
 
       dispatch({ type: 'updateAxis', data: { x: newStateX, y: newStateY } });
     };

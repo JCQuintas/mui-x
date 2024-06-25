@@ -2,9 +2,13 @@ import { ExtremumGetter, ExtremumGetterResult } from '../models/seriesType/confi
 
 const getBaseExtremum: ExtremumGetter<'bar'> = (params) => {
   const { axis } = params;
-
   const minX = Math.min(...(axis.data ?? []));
   const maxX = Math.max(...(axis.data ?? []));
+
+  if (Number.isNaN(minX) || Number.isNaN(maxX)) {
+    return [0, (axis.data?.length ?? 1) - 1];
+  }
+
   return [minX, maxX];
 };
 

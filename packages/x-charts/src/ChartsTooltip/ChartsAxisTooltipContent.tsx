@@ -13,8 +13,10 @@ import { useColorProcessor } from '../hooks/useColor';
 import { isCartesianSeriesType } from '../internals/isCartesian';
 import { useSeries } from '../hooks/useSeries';
 
-type ChartSeriesDefaultizedWithColorGetter = ChartSeriesDefaultized<ChartSeriesType> & {
+type ChartSeriesDefaultizedOnAxis = ChartSeriesDefaultized<ChartSeriesType> & {
   getColor: (dataIndex: number) => string;
+  visibleData: any[];
+  label?: string;
 };
 
 export type ChartsAxisContentProps = {
@@ -25,7 +27,7 @@ export type ChartsAxisContentProps = {
   /**
    * The series linked to the triggered axis.
    */
-  series: ChartSeriesDefaultizedWithColorGetter[];
+  series: ChartSeriesDefaultizedOnAxis[];
   /**
    * The properties of the triggered axis.
    */
@@ -54,10 +56,10 @@ function ChartsAxisTooltipContent(props: {
 }) {
   const { content, contentProps, axisData, sx, classes } = props;
 
-  const isXaxis = (axisData.x && axisData.x.index) !== undefined;
+  const isXAxis = (axisData.x && axisData.x.index) !== undefined;
 
-  const dataIndex = isXaxis ? axisData.x && axisData.x.index : axisData.y && axisData.y.index;
-  const axisValue = isXaxis ? axisData.x && axisData.x.value : axisData.y && axisData.y.value;
+  const dataIndex = isXAxis ? axisData.x && axisData.x.index : axisData.y && axisData.y.index;
+  const axisValue = isXAxis ? axisData.x && axisData.x.value : axisData.y && axisData.y.value;
 
   const { xAxisIds, xAxis, yAxisIds, yAxis } = useCartesianContext();
   const { zAxisIds, zAxis } = React.useContext(ZAxisContext);
@@ -65,7 +67,7 @@ function ChartsAxisTooltipContent(props: {
 
   const colorProcessors = useColorProcessor();
 
-  const USED_AXIS_ID = isXaxis ? xAxisIds[0] : yAxisIds[0];
+  const USED_AXIS_ID = isXAxis ? xAxisIds[0] : yAxisIds[0];
 
   const relevantSeries = React.useMemo(() => {
     const rep: any[] = [];
@@ -74,7 +76,7 @@ function ChartsAxisTooltipContent(props: {
       .forEach((seriesType) => {
         series[seriesType]!.seriesOrder.forEach((seriesId) => {
           const item = series[seriesType]!.series[seriesId];
-          const axisKey = isXaxis ? item.xAxisKey : item.yAxisKey;
+          const axisKey = isXAxis ? item.xAxisKey : item.yAxisKey;
           if (axisKey === undefined || axisKey === USED_AXIS_ID) {
             const seriesToAdd = series[seriesType]!.series[seriesId];
 
@@ -88,7 +90,13 @@ function ChartsAxisTooltipContent(props: {
                 zAxisKey && zAxis[zAxisKey],
               ) ?? (() => '');
 
-            rep.push({ ...seriesToAdd, getColor });
+            const visibleAxisRange = isXAxis
+              ? xAxis[seriesToAdd.xAxisKey ?? xAxisIds[0]].visibleDataRange
+              : yAxis[seriesToAdd.yAxisKey ?? yAxisIds[0]].visibleDataRange;
+
+            const visibleData = seriesToAdd.data.slice(...visibleAxisRange);
+
+            rep.push({ ...seriesToAdd, getColor, visibleData });
           }
         });
       });
@@ -96,7 +104,7 @@ function ChartsAxisTooltipContent(props: {
   }, [
     USED_AXIS_ID,
     colorProcessors,
-    isXaxis,
+    isXAxis,
     series,
     xAxis,
     xAxisIds,
@@ -107,8 +115,8 @@ function ChartsAxisTooltipContent(props: {
   ]);
 
   const relevantAxis = React.useMemo(() => {
-    return isXaxis ? xAxis[USED_AXIS_ID] : yAxis[USED_AXIS_ID];
-  }, [USED_AXIS_ID, isXaxis, xAxis, yAxis]);
+    return isXAxis ? xAxis[USED_AXIS_ID] : yAxis[USED_AXIS_ID];
+  }, [USED_AXIS_ID, isXAxis, xAxis, yAxis]);
 
   const Content = content ?? DefaultChartsAxisTooltipContent;
   const chartTooltipContentProps = useSlotProps({

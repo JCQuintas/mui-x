@@ -157,6 +157,10 @@ const useAggregatedData = (): {
           maskId: `${chartId}_${stackId || seriesId}_${groupIndex}_${dataIndex}`,
         };
 
+        if (Number.isNaN(result.x) || Number.isNaN(result.y)) {
+          return null;
+        }
+
         if (!masks[result.maskId]) {
           masks[result.maskId] = {
             id: result.maskId,
@@ -186,7 +190,7 @@ const useAggregatedData = (): {
   });
 
   return {
-    completedData: data,
+    completedData: data.filter(Boolean) as CompletedBarData[],
     masksData: Object.values(masks),
   };
 };

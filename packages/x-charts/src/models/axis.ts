@@ -318,6 +318,15 @@ export type AxisDefaultized<
      * An indication of the expected number of ticks.
      */
     tickNumber: number;
+    /**
+     * Same as data but filtered to the visible part of the axis.
+     */
+    visibleData: V[];
+    /**
+     * The range of the original data that is visible.
+     * Eg: [5, 10] means that the data from index 5 to 10 is visible.
+     */
+    visibleDataRange: [number, number];
   };
 
 export function isBandScaleConfig(

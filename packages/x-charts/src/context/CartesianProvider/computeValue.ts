@@ -85,14 +85,25 @@ export function computeValue(
       // Reverse range because ordinal scales are presented from top to bottom on y-axis
       const scaleRange = axisName === 'x' ? range : [range[1], range[0]];
 
+      let visibleData = axis.data!;
+      let visibleDataRange: [number, number] = [0, axis.data!.length];
+
+      if (typeof minData === 'number' && typeof maxData === 'number') {
+        visibleData = axis.data!.slice(minData, maxData + 1);
+        visibleDataRange = [minData, maxData + 1];
+      }
+
+      // This is a band scale
       completeAxis[axis.id] = {
         categoryGapRatio,
         barGapRatio,
         ...axis,
-        scale: scaleBand(axis.data!, scaleRange)
+        visibleData,
+        visibleDataRange,
+        scale: scaleBand(visibleData, scaleRange)
           .paddingInner(categoryGapRatio)
           .paddingOuter(categoryGapRatio / 2),
-        tickNumber: axis.data!.length,
+        tickNumber: visibleData.length,
         colorScale:
           axis.colorMap &&
           (axis.colorMap.type === 'ordinal'
@@ -105,6 +116,8 @@ export function computeValue(
 
       completeAxis[axis.id] = {
         ...axis,
+        visibleData: axis.data!,
+        visibleDataRange: [0, axis.data!.length],
         scale: scalePoint(axis.data!, scaleRange),
         tickNumber: axis.data!.length,
         colorScale:
@@ -131,6 +144,8 @@ export function computeValue(
 
     completeAxis[axis.id] = {
       ...axis,
+      visibleData: axis.data!,
+      visibleDataRange: [0, axis.data?.length ?? 0],
       scaleType: scaleType as any,
       scale: scale.domain(domain) as any,
       tickNumber,
