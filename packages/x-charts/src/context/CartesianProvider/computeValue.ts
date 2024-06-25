@@ -36,6 +36,7 @@ export function computeValue(
   axis: MakeOptional<AxisConfig<ScaleName, any, ChartsYAxisProps>, 'id'>[] | undefined,
   extremumGetters: { [K in CartesianChartSeriesType]?: ExtremumGetter<K> },
   axisName: 'y',
+  zoomRange?: [number, number],
 ): {
   axis: DefaultizedAxisConfig<ChartsYAxisProps>;
   axisIds: string[];
@@ -46,6 +47,7 @@ export function computeValue(
   inAxis: MakeOptional<AxisConfig<ScaleName, any, ChartsXAxisProps>, 'id'>[] | undefined,
   extremumGetters: { [K in CartesianChartSeriesType]?: ExtremumGetter<K> },
   axisName: 'x',
+  zoomRange?: [number, number],
 ): {
   axis: DefaultizedAxisConfig<ChartsAxisProps>;
   axisIds: string[];
@@ -56,6 +58,7 @@ export function computeValue(
   inAxis: MakeOptional<AxisConfig<ScaleName, any, ChartsAxisProps>, 'id'>[] | undefined,
   extremumGetters: { [K in CartesianChartSeriesType]?: ExtremumGetter<K> },
   axisName: 'x' | 'y',
+  zoomRange: [number, number] = [0, 100],
 ) {
   const DEFAULT_AXIS_KEY = axisName === 'x' ? DEFAULT_X_AXIS_KEY : DEFAULT_Y_AXIS_KEY;
 
@@ -85,13 +88,18 @@ export function computeValue(
       // Reverse range because ordinal scales are presented from top to bottom on y-axis
       const scaleRange = axisName === 'x' ? range : [range[1], range[0]];
 
-      let visibleData = axis.data!;
-      let visibleDataRange: [number, number] = [0, axis.data!.length];
+      const visibleData = axis.data!;
+      const visibleDataRange: [number, number] = [0, axis.data!.length];
 
-      if (typeof minData === 'number' && typeof maxData === 'number') {
-        visibleData = axis.data!.slice(minData, maxData + 1);
-        visibleDataRange = [minData, maxData + 1];
-      }
+      // if (typeof minData === 'number' && typeof maxData === 'number') {
+      //   visibleData = axis.data!.slice(minData, maxData + 1);
+      //   visibleDataRange = [minData, maxData + 1];
+      // }
+      const rangeGap = scaleRange[1] - scaleRange[0];
+      const rangeMinMultiplier = zoomRange[0] / 100;
+      const rangeMaxMultiplier = zoomRange[1] / 100;
+      const min = (scaleRange[0] - rangeGap * rangeMinMultiplier) / (1 - rangeMinMultiplier);
+      const max = (scaleRange[1] + rangeGap * (1 - rangeMaxMultiplier)) / rangeMaxMultiplier;
 
       // This is a band scale
       completeAxis[axis.id] = {
@@ -100,7 +108,7 @@ export function computeValue(
         ...axis,
         visibleData,
         visibleDataRange,
-        scale: scaleBand(visibleData, scaleRange)
+        scale: scaleBand(visibleData, [min, max])
           .paddingInner(categoryGapRatio)
           .paddingOuter(categoryGapRatio / 2),
         tickNumber: visibleData.length,
