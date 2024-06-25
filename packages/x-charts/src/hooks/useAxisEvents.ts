@@ -31,10 +31,7 @@ export const useAxisEvents = (disableAxisListener: boolean) => {
       return () => {};
     }
 
-    function getNewAxisState(xAxisId: AxisId, axisConfig: AxisDefaultized, mouseValue: number) {
-      if (xAxisId === null) {
-        return null;
-      }
+    function getNewAxisState(axisConfig: AxisDefaultized, mouseValue: number) {
       const { scale, visibleData: axisData, reverse } = axisConfig;
 
       if (!isBandScale(scale)) {
