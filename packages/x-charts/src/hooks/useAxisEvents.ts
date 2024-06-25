@@ -115,8 +115,8 @@ export const useAxisEvents = (disableAxisListener: boolean) => {
         dispatch({ type: 'exitChart' });
         return;
       }
-      const newStateX = getNewAxisState(usedXAxis, xAxis[usedXAxis], svgPoint.x);
-      const newStateY = getNewAxisState(usedXAxis, yAxis[usedYAxis], svgPoint.y);
+      const newStateX = getNewAxisState(xAxis[usedXAxis], svgPoint.x);
+      const newStateY = getNewAxisState(yAxis[usedYAxis], svgPoint.y);
 
       dispatch({ type: 'updateAxis', data: { x: newStateX, y: newStateY } });
     };
