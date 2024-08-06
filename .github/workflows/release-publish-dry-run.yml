@@ -110,6 +110,6 @@ jobs:
       # cat ./.npmrc
 
       - name: Release Publish Dry-Run
-        run: pnpm release:publish:dry-run --registry ${{ env.HTTP_REGISTRY }} --no-git-checks --force
+        run: pnpm publish --recursive --tag latest --registry="${{ env.HTTP_REGISTRY }}" --no-git-checks --force
         env:
           NODE_AUTH_TOKEN: fake-token-mui-x
