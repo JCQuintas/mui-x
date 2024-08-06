@@ -1,0 +1,115 @@
+name: Release Publish Dry-Run
+
+on:
+  pull_request:
+    branches:
+      - master
+      - next
+    types:
+      - labeled
+      - opened
+      - synchronize
+      - reopened
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-publishing:
+    name: Release Publish Dry-Run
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: localhost:4873
+      HTTP_REGISTRY: http://localhost:4873
+      USERNAME: mui-x
+      PASSWORD: mui-x-password
+      EMAIL: mui-x@mui.com
+      VERDACCIO_CONFIG: ./verdaccio.yaml
+    if: >
+      ${{ contains(github.event.pull_request.labels.*.name, 'release')}}
+    services:
+      verdaccio:
+        image: verdaccio/verdaccio:5.32.1
+        options: --name verdaccio
+        ports:
+          - 4873:4873
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - run: rm -rf ./.npmrc
+
+      - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2
+        with:
+          run_install: false
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          scope: '@mui'
+          registry-url: ${{ env.HTTP_REGISTRY }}
+
+      - run: corepack enable
+      - run: sudo apt-get update && sudo apt-get install -y expect
+
+      - name: Create Verdaccio configuration
+        run: |
+          echo "
+          storage: /verdaccio/storage/data
+          plugins: /verdaccio/plugins
+          web:
+            title: Verdaccio
+          auth:
+            htpasswd:
+              file: /verdaccio/storage/htpasswd
+              algorithm: bcrypt
+          packages:
+            '@mui/*':
+              access: $all
+              publish: $all
+          log: {type: stdout, format: pretty, level: trace}
+          " > ${{ env.VERDACCIO_CONFIG }}
+
+      - name: Copy config to Verdaccio container
+        uses: docker://docker
+        with:
+          args: docker cp ${{ env.VERDACCIO_CONFIG }} verdaccio:/verdaccio/conf/config.yaml
+
+      - name: Restart Verdaccio to apply the new configuration
+        uses: docker://docker
+        with:
+          args: docker restart -t 2 verdaccio
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm release:build
+
+      - name: Add user
+        run: |
+          echo '#!/usr/bin/expect -f
+          spawn pnpm adduser --scope @mui --registry ${{ env.HTTP_REGISTRY }}
+          expect {
+            "Username:" {send "${{ env.USERNAME }}\r"; exp_continue}
+            "Password:" {send "${{ env.PASSWORD }}\r"; exp_continue}
+            "Email: (this IS public)" {send "${{ env.EMAIL }}\r"; exp_continue}
+          }
+          ' > adduser && chmod +x adduser && ./adduser
+
+      - name: Run
+        uses: docker://docker
+        with:
+          args: docker restart -t 2 verdaccio
+
+      # - run: echo '//${{ env.REGISTRY }}/:_authToken=fake-token-mui-x' > ${{ github.workspace }}/.npmrc
+      # - run: echo 'registry=${{ env.HTTP_REGISTRY }}' >> ${{ github.workspace }}/.npmrc
+
+      # - run: cat ${{ github.workspace }}/.npmrc
+
+      # echo "//${{ env.REGISTRY }}/:_authToken=${NODE_AUTH_TOKEN}" >> ./.npmrc
+      # echo "registry=${{ env.HTTP_REGISTRY }}" >> ./.npmrc
+      # cat ./.npmrc
+
+      - name: Release Publish Dry-Run
+        run: pnpm release:publish:dry-run --registry ${{ env.HTTP_REGISTRY }} --no-git-checks --force
+        env:
+          NODE_AUTH_TOKEN: fake-token-mui-x
