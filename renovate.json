@@ -15,7 +15,7 @@
     },
     {
       "groupName": "babel",
-      "matchPackageNames": ["@babel/**"]
+      "matchPackageNames": ["@babel/*"]
     },
     {
       "groupName": "D3",
@@ -23,11 +23,11 @@
     },
     {
       "groupName": "react-spring",
-      "matchPackageNames": ["@react-spring/**"]
+      "matchPackageNames": ["@react-spring/*"]
     },
     {
       "groupName": "Emotion",
-      "matchPackageNames": ["@emotion/**"]
+      "matchPackageNames": ["@emotion/*"]
     },
     {
       "groupName": "core-js",
@@ -51,7 +51,7 @@
     },
     {
       "groupName": "typescript-eslint",
-      "matchPackageNames": ["@typescript-eslint/**"]
+      "matchPackageNames": ["@typescript-eslint/*"]
     },
     {
       "groupName": "ESLint plugins",
@@ -115,7 +115,7 @@
     },
     {
       "groupName": "Vite & Vitest",
-      "matchPackageNames": ["@vitejs/**", "/vitest/"]
+      "matchPackageNames": ["@vitejs/*", "vitest", "@vitest/*"]
     }
   ],
   "postUpdateOptions": ["pnpmDedupe"],
