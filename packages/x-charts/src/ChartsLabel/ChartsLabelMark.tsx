@@ -55,11 +55,11 @@ function SvgCircle({ color }: Pick<ChartsLabelMarkProps, 'color'>) {
 }
 
 function SvgLine({ color }: Pick<ChartsLabelMarkProps, 'color'>) {
-  return <rect y="9" width="24" height="6" rx="4" fill={color} />;
+  return <rect y="9" width="24" height="6" rx="4" ry="4" fill={color} />;
 }
 
 function SvgSquare({ color }: Pick<ChartsLabelMarkProps, 'color'>) {
-  return <rect width="24" height="24" rx="4" fill={color} />;
+  return <rect width="24" height="24" rx="4" ry="4" fill={color} />;
 }
 
 /**
