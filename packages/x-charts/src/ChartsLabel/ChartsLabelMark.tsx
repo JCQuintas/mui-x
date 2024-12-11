@@ -3,7 +3,7 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { styled, SxProps, Theme } from '@mui/material/styles';
 import clsx from 'clsx';
-import { ChartsLabelMarkClasses, labelMarkClasses, useUtilityClasses } from './labelMarkClasses';
+import { ChartsLabelMarkClasses, useUtilityClasses } from './labelMarkClasses';
 import { consumeThemeProps } from '../internals/consumeThemeProps';
 
 export interface ChartsLabelMarkProps {
@@ -24,46 +24,43 @@ export interface ChartsLabelMarkProps {
   sx?: SxProps<Theme>;
 }
 
+const defaultSize = {
+  square: 13,
+  circle: 15,
+  line: 16,
+} as const;
+
 const Root = styled('div', {
   name: 'MuiChartsLabelMark',
   slot: 'Root',
   overridesResolver: (props, styles) => styles.root,
-})<{ ownerState: ChartsLabelMarkProps }>(() => {
+})<{ ownerState: ChartsLabelMarkProps }>(({ ownerState }) => {
   return {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    [`&.${labelMarkClasses.line}`]: {
-      width: 16,
-      display: 'flex',
-      alignItems: 'center',
-      '> div': {
-        height: 4,
-        width: '100%',
-        borderRadius: 1,
-        overflow: 'hidden',
-      },
-    },
-    [`&.${labelMarkClasses.square}`]: {
-      height: 13,
-      width: 13,
-      borderRadius: 2,
-      overflow: 'hidden',
-    },
-    [`&.${labelMarkClasses.circle}`]: {
-      height: 15,
-      width: 15,
-      borderRadius: '50%',
-      overflow: 'hidden',
-    },
+    height: defaultSize[ownerState.type || 'square'],
+    width: defaultSize[ownerState.type || 'square'],
+    overflow: 'hidden',
+
     svg: {
       display: 'block',
-      height: '100%',
-      width: '100%',
     },
   };
 });
+
+function SvgCircle({ color }: Pick<ChartsLabelMarkProps, 'color'>) {
+  return <circle r="12" cx="12" cy="12" fill={color} />;
+}
+
+function SvgLine({ color }: Pick<ChartsLabelMarkProps, 'color'>) {
+  return <rect y="9" width="24" height="6" rx="4" fill={color} />;
+}
+
+function SvgSquare({ color }: Pick<ChartsLabelMarkProps, 'color'>) {
+  return <rect width="24" height="24" rx="4" fill={color} />;
+}
 
 /**
  * @ignore - internal component.
@@ -86,11 +83,11 @@ const ChartsLabelMark = consumeThemeProps(
         ref={ref}
         {...other}
       >
-        <div>
-          <svg viewBox="0 0 24 24" preserveAspectRatio={type === 'line' ? 'none' : undefined}>
-            <rect width="24" height="24" fill={color} />
-          </svg>
-        </div>
+        <svg viewBox="0 0 24 24">
+          {type === 'circle' && <SvgCircle color={color} />}
+          {type === 'line' && <SvgLine color={color} />}
+          {type === 'square' && <SvgSquare color={color} />}
+        </svg>
       </Root>
     );
   },
