@@ -1,89 +1,95 @@
 'use client';
 import * as React from 'react';
+import { styled, SxProps, Theme } from '@mui/material/styles';
+import { PrependKeys } from '@mui/x-internals/types';
 import PropTypes from 'prop-types';
-import useSlotProps from '@mui/utils/useSlotProps';
-import composeClasses from '@mui/utils/composeClasses';
-import { DefaultizedProps } from '@mui/x-internals/types';
-import { useThemeProps, useTheme, Theme } from '@mui/material/styles';
-import { getLegendUtilityClass } from './chartsLegendClasses';
-import { DefaultChartsLegend, LegendRendererProps } from './DefaultChartsLegend';
-import { LegendPlacement } from './legend.types';
+import clsx from 'clsx';
+import { useLegend } from '../hooks/useLegend';
+import { ChartsLegendItem } from './ChartsLegendItem';
+import type { ChartsLegendPlacement, ChartsLegendSlotExtension } from './legend.types';
+import { SeriesLegendItemContext } from './legendContext.types';
+import { ChartsLabelMarkProps } from '../ChartsLabel/ChartsLabelMark';
+import { seriesContextBuilder } from './onClickContextBuilder';
+import { useUtilityClasses, type ChartsLegendClasses } from './chartsLegendClasses';
+import { consumeSlots } from '../internals/consumeSlots';
 
-export type ChartsLegendPropsBase = Omit<
-  LegendRendererProps,
-  keyof LegendPlacement | 'series' | 'seriesToDisplay' | 'drawingArea'
-> &
-  LegendPlacement;
-
-export interface ChartsLegendSlots {
+export interface ChartsLegendProps
+  extends ChartsLegendPlacement,
+    PrependKeys<Omit<ChartsLabelMarkProps, 'color'>, 'mark'> {
   /**
-   * Custom rendering of the legend.
-   * @default DefaultChartsLegend
+   * Callback fired when a legend item is clicked.
+   * @param {React.MouseEvent<HTMLDivElement, MouseEvent>} event The click event.
+   * @param {SeriesLegendItemContext} legendItem The legend item data.
+   * @param {number} index The index of the clicked legend item.
    */
-  legend?: React.JSXElementConstructor<LegendRendererProps>;
-}
-
-export interface ChartsLegendSlotProps {
-  legend?: Partial<LegendRendererProps>;
-}
-
-export interface ChartsLegendProps extends ChartsLegendPropsBase {
+  onItemClick?: (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    legendItem: SeriesLegendItemContext,
+    index: number,
+  ) => void;
   /**
-   * Overridable component slots.
-   * @default {}
+   * Override or extend the styles applied to the component.
    */
-  slots?: ChartsLegendSlots;
-  /**
-   * The props used for each component slot.
-   * @default {}
-   */
-  slotProps?: ChartsLegendSlotProps;
+  // eslint-disable-next-line react/no-unused-prop-types
+  classes?: Partial<ChartsLegendClasses>;
+  className?: string;
+  sx?: SxProps<Theme>;
 }
 
-type DefaultizedChartsLegendProps = DefaultizedProps<ChartsLegendProps, 'direction' | 'position'>;
+const RootDiv = styled('div', {
+  name: 'MuiChartsLegend',
+  slot: 'Root',
+  overridesResolver: (props, styles) => styles.root,
+})<{ ownerState: Pick<ChartsLegendProps, 'direction'> }>(({ ownerState, theme }) => ({
+  display: 'flex',
+  flexDirection: ownerState.direction ?? 'row',
+  gap: theme.spacing(2),
+}));
 
-const useUtilityClasses = (ownerState: DefaultizedChartsLegendProps & { theme: Theme }) => {
-  const { classes, direction } = ownerState;
-  const slots = {
-    root: ['root', direction],
-    mark: ['mark'],
-    label: ['label'],
-    series: ['series'],
-    itemBackground: ['itemBackground'],
-  };
+const ChartsLegend = consumeSlots(
+  'MuiChartsLegend',
+  'legend',
+  {
+    defaultProps: { direction: 'row' },
+    classesResolver: useUtilityClasses,
+  },
+  function ChartsLegend(
+    props: ChartsLegendProps & ChartsLegendSlotExtension,
+    ref: React.Ref<HTMLDivElement>,
+  ) {
+    const data = useLegend();
+    const { direction, markType, onItemClick, className, classes, ...other } = props;
 
-  return composeClasses(slots, getLegendUtilityClass, classes);
-};
-
-function ChartsLegend(inProps: ChartsLegendProps) {
-  const props = useThemeProps({
-    props: inProps,
-    name: 'MuiChartsLegend',
-  });
-
-  const defaultizedProps: DefaultizedChartsLegendProps = {
-    direction: 'row',
-    ...props,
-    position: { horizontal: 'middle', vertical: 'top', ...props.position },
-  };
-  const { slots, slotProps, ...other } = defaultizedProps;
-
-  const theme = useTheme();
-  const classes = useUtilityClasses({ ...defaultizedProps, theme });
-
-  const ChartLegendRender = slots?.legend ?? DefaultChartsLegend;
-  const chartLegendRenderProps = useSlotProps({
-    elementType: ChartLegendRender,
-    externalSlotProps: slotProps?.legend,
-    additionalProps: {
-      ...other,
-      classes,
-    },
-    ownerState: {},
-  });
-
-  return <ChartLegendRender {...chartLegendRenderProps} />;
-}
+    return (
+      <RootDiv
+        className={clsx(classes?.root, className)}
+        ref={ref}
+        {...other}
+        ownerState={{ direction }}
+      >
+        {data.itemsToDisplay.map((item, i) => {
+          return (
+            <ChartsLegendItem
+              key={item.id}
+              classes={classes}
+              onClick={
+                onItemClick
+                  ? (event) => onItemClick(event, seriesContextBuilder(item), i)
+                  : undefined
+              }
+              mark={{
+                color: item.color,
+                type: markType ?? item.markType,
+              }}
+            >
+              {item.label}
+            </ChartsLegendItem>
+          );
+        })}
+      </RootDiv>
+    );
+  },
+);
 
 ChartsLegend.propTypes = {
   // ----------------------------- Warning --------------------------------
@@ -100,63 +106,17 @@ ChartsLegend.propTypes = {
    */
   direction: PropTypes.oneOf(['column', 'row']),
   /**
-   * Set to true to hide the legend.
-   * @default false
-   */
-  hidden: PropTypes.bool,
-  /**
-   * Space between two legend items (in px).
-   * @default 10
-   */
-  itemGap: PropTypes.number,
-  /**
-   * Height of the item mark (in px).
-   * @default 20
-   */
-  itemMarkHeight: PropTypes.number,
-  /**
-   * Width of the item mark (in px).
-   * @default 20
-   */
-  itemMarkWidth: PropTypes.number,
-  /**
    * Style applied to legend labels.
-   * @default theme.typography.subtitle1
+   * @default theme.typography.caption
    */
   labelStyle: PropTypes.object,
   /**
-   * Space between the mark and the label (in px).
-   * @default 5
-   */
-  markGap: PropTypes.number,
-  /**
    * Callback fired when a legend item is clicked.
-   * @param {React.MouseEvent<SVGRectElement, MouseEvent>} event The click event.
+   * @param {React.MouseEvent<HTMLDivElement, MouseEvent>} event The click event.
    * @param {SeriesLegendItemContext} legendItem The legend item data.
    * @param {number} index The index of the clicked legend item.
    */
   onItemClick: PropTypes.func,
-  /**
-   * Legend padding (in px).
-   * Can either be a single number, or an object with top, left, bottom, right properties.
-   * @default 10
-   */
-  padding: PropTypes.oneOfType([
-    PropTypes.number,
-    PropTypes.shape({
-      bottom: PropTypes.number,
-      left: PropTypes.number,
-      right: PropTypes.number,
-      top: PropTypes.number,
-    }),
-  ]),
-  /**
-   * The position of the legend.
-   */
-  position: PropTypes.shape({
-    horizontal: PropTypes.oneOf(['left', 'middle', 'right']).isRequired,
-    vertical: PropTypes.oneOf(['bottom', 'middle', 'top']).isRequired,
-  }),
   /**
    * The props used for each component slot.
    * @default {}

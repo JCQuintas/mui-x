@@ -3,10 +3,10 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { AxisDefaultized } from '../models/axis';
 import { useAxis } from './useAxis';
-import { ColorLegendSelector, PiecewiseLabelFormatterParams } from './legend.types';
 import { LegendPerItem, LegendPerItemProps } from './LegendPerItem';
 import { notNull } from '../internals/notNull';
-import { LegendItemParams, PiecewiseColorLegendItemContext } from './chartsLegend.types';
+import { ColorLegendSelector, PiecewiseLabelFormatterParams } from './svgLegend.types';
+import { LegendItemParams, PiecewiseColorLegendItemContext } from './svgLegendContext.types';
 
 function defaultLabelFormatter(params: PiecewiseLabelFormatterParams) {
   if (params.min === null) {

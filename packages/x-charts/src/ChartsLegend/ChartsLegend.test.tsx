@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { createRenderer, describeConformance } from '@mui/internal-test-utils';
-import { ChartsLegend, legendClasses } from '@mui/x-charts/ChartsHtmlLegend';
+import { ChartsLegend, legendClasses } from '@mui/x-charts/ChartsLegend';
 import { ChartDataProvider } from '@mui/x-charts/context';
 import { ChartsSurface } from '@mui/x-charts/ChartsSurface';
 import { createTheme, ThemeProvider } from '@mui/material/styles';

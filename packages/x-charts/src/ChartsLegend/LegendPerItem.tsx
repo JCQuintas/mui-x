@@ -7,12 +7,12 @@ import { DrawingAreaState } from '../context/DrawingAreaProvider';
 import { ChartsTextStyle } from '../ChartsText';
 import { CardinalDirections } from '../models/layout';
 import { getWordsByLines } from '../internals/getWordsByLines';
-import { GetItemSpaceType, LegendItemParams } from './chartsLegend.types';
 import { legendItemPlacements } from './legendItemsPlacement';
 import { useDrawingArea } from '../hooks/useDrawingArea';
-import { AnchorPosition, Direction, LegendPlacement } from './legend.types';
-import { ChartsLegendItem } from './ChartsLegendItem';
+import { ChartsLegendItem } from './ChartsLegendSvgItem';
 import { ChartsLegendClasses } from './chartsLegendClasses';
+import { AnchorPosition, Direction, LegendPlacement } from './svgLegend.types';
+import { GetItemSpaceType, LegendItemParams } from './svgLegendContext.types';
 
 export type ChartsLegendRootOwnerState = {
   position: AnchorPosition;

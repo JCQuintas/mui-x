@@ -1,5 +1,4 @@
 export * from './ChartsLegend';
-export * from './DefaultChartsLegend';
-export * from './ContinuousColorLegend';
-export * from './PiecewiseColorLegend';
-export * from './chartsLegendClasses';
+export * from './legend.types';
+export * from './legendContext.types';
+export { ChartsLegendClasses, legendClasses } from './chartsLegendClasses';

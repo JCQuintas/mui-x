@@ -1,5 +1,9 @@
 import { ChartsTextStyle } from '../ChartsText';
-import { GetItemSpaceType, LegendItemParams, LegendItemWithPosition } from './chartsLegend.types';
+import {
+  GetItemSpaceType,
+  LegendItemWithPosition,
+  LegendItemParams,
+} from './svgLegendContext.types';
 
 export function legendItemPlacements(
   itemsToDisplay: LegendItemParams[],
