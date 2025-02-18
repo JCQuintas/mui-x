@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { useTicks } from '../hooks/useTicks';
-import { AxisDefaultized, ChartsXAxisProps, ScaleName } from '../models/axis';
+import { AxisDefaultized, ScaleName } from '../models/axis';
 import { GridLine } from './styledComponents';
 import { ChartsGridClasses } from './chartsGridClasses';
 
 interface ChartsGridVerticalProps {
-  axis: AxisDefaultized<ScaleName, any, ChartsXAxisProps>;
+  axis: AxisDefaultized<ScaleName, any, 'x'>;
   start: number;
   end: number;
   classes: Partial<ChartsGridClasses>;

@@ -133,34 +133,18 @@ export interface ChartsAxisProps extends TickParams {
   sx?: SxProps;
 }
 
-export interface ChartsYAxisProps extends ChartsAxisProps {
-  axis?: 'y';
-}
+export interface ChartsYAxisProps extends ChartsAxisProps {}
 
-export interface ChartsXAxisProps extends ChartsAxisProps {
-  axis?: 'x';
-}
+export interface ChartsXAxisProps extends ChartsAxisProps {}
 
-type AxisSideConfig<AxisProps extends ChartsAxisProps> = AxisProps extends ChartsXAxisProps
-  ? {
-      /**
-       * Position of the axis.
-       *
-       * When set, the space for the axis is reserved, even if the axis is not displayed due to missing data.
-       *
-       * Set to 'none' to hide the axis.
-       *
-       * The first axis in the list will always have a default position.
-       */
-      position?: 'top' | 'bottom' | 'none';
-      /**
-       * The height of the axis.
-       * @default 30
-       */
-      height?: number;
-    }
-  : AxisProps extends ChartsYAxisProps
+type AxisSideConfig<AxisDirection extends 'x' | 'y'> = AxisDirection extends 'x'
+  ? AxisDirection extends 'y'
     ? {
+        position?: 'top' | 'bottom' | 'left' | 'right' | 'none';
+        height?: number;
+        width?: number;
+      }
+    : {
         /**
          * Position of the axis.
          *
@@ -170,18 +154,30 @@ type AxisSideConfig<AxisProps extends ChartsAxisProps> = AxisProps extends Chart
          *
          * The first axis in the list will always have a default position.
          */
-        position?: 'left' | 'right' | 'none';
+        position?: 'top' | 'bottom' | 'none';
         /**
-         * The width of the axis.
+         * The height of the axis.
          * @default 30
          */
-        width?: number;
-      }
-    : {
-        position?: 'top' | 'bottom' | 'left' | 'right' | 'none';
         height?: number;
-        width?: number;
-      };
+      }
+  : {
+      /**
+       * Position of the axis.
+       *
+       * When set, the space for the axis is reserved, even if the axis is not displayed due to missing data.
+       *
+       * Set to 'none' to hide the axis.
+       *
+       * The first axis in the list will always have a default position.
+       */
+      position?: 'left' | 'right' | 'none';
+      /**
+       * The width of the axis.
+       * @default 30
+       */
+      width?: number;
+    };
 
 export interface ChartsRotationAxisProps extends ChartsAxisProps {
   /**
@@ -333,7 +329,7 @@ export type AxisValueFormatterContext<S extends ScaleName = ScaleName> =
 export type AxisConfig<
   S extends ScaleName = ScaleName,
   V = any,
-  AxisProps extends ChartsAxisProps = ChartsXAxisProps | ChartsYAxisProps,
+  AxisDirection extends 'x' | 'y' = 'x' | 'y',
 > = {
   /**
    * Id used to identify the axis.
@@ -389,9 +385,9 @@ export type AxisConfig<
    * - function: Receives the calculated extremums as parameters, and should return the axis domain.
    */
   domainLimit?: 'nice' | 'strict' | ((min: number, max: number) => { min: number; max: number });
-} & Omit<Partial<AxisProps>, 'axisId'> &
+} & Omit<Partial<ChartsAxisProps>, 'axisId'> &
   Partial<Omit<AxisScaleConfig[S], 'scale'>> &
-  AxisSideConfig<AxisProps> &
+  AxisSideConfig<AxisDirection> &
   TickParams &
   AxisConfigExtension;
 
@@ -400,10 +396,10 @@ export interface AxisConfigExtension {}
 export type AxisDefaultized<
   S extends ScaleName = ScaleName,
   V = any,
-  AxisProps extends ChartsAxisProps = ChartsXAxisProps | ChartsYAxisProps,
-> = MakeRequired<Omit<AxisConfig<S, V, AxisProps>, 'scaleType'>, 'offset'> &
+  AxisDirection extends 'x' | 'y' = 'x' | 'y',
+> = MakeRequired<Omit<AxisConfig<S, V, AxisDirection>, 'scaleType'>, 'offset'> &
   AxisScaleConfig[S] &
-  AxisSideConfig<AxisProps> &
+  AxisSideConfig<AxisDirection> &
   AxisScaleComputedConfig[S] & {
     /**
      * An indication of the expected number of ticks.

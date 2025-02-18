@@ -16,7 +16,7 @@ import { isBandScale } from '../internals/isBandScale';
 import { useChartContext } from '../context/ChartProvider';
 import { useYAxes } from '../hooks';
 
-const useUtilityClasses = (ownerState: AxisConfig<any, any, ChartsYAxisProps>) => {
+const useUtilityClasses = (ownerState: AxisConfig<any, any, 'y'>) => {
   const { classes, position } = ownerState;
   const slots = {
     root: ['root', 'directionY', position],
@@ -224,7 +224,6 @@ ChartsYAxis.propTypes = {
   // | These PropTypes are generated from the TypeScript type definitions |
   // | To update them edit the TypeScript types and run "pnpm proptypes"  |
   // ----------------------------------------------------------------------
-  axis: PropTypes.oneOf(['y']),
   /**
    * The id of the axis to render.
    * If undefined, it will be the first defined axis.
