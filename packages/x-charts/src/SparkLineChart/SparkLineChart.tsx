@@ -10,7 +10,7 @@ import { DEFAULT_X_AXIS_KEY, DEFAULT_Y_AXIS_KEY } from '../constants';
 import { ChartsTooltip } from '../ChartsTooltip';
 import { ChartsTooltipSlots, ChartsTooltipSlotProps } from '../ChartsTooltip/ChartTooltip.types';
 import { ChartsAxisHighlight, ChartsAxisHighlightProps } from '../ChartsAxisHighlight';
-import { AxisConfig, ChartsXAxisProps, ChartsYAxisProps, ScaleName } from '../models/axis';
+import { AxisConfig, ScaleName } from '../models/axis';
 import { LineSeriesType, BarSeriesType } from '../models/seriesType';
 import { AreaPlotSlots, AreaPlotSlotProps } from '../LineChart/AreaPlot';
 import { LinePlotSlots, LinePlotSlotProps } from '../LineChart/LinePlot';
@@ -43,12 +43,12 @@ export interface SparkLineChartProps
    * The xAxis configuration.
    * Notice it is a single [[AxisConfig]] object, not an array of configuration.
    */
-  xAxis?: MakeOptional<AxisConfig<ScaleName, any, ChartsXAxisProps>, 'id'>;
+  xAxis?: MakeOptional<AxisConfig<ScaleName, any, 'x'>, 'id'>;
   /**
    * The yAxis configuration.
    * Notice it is a single [[AxisConfig]] object, not an array of configuration.
    */
-  yAxis?: MakeOptional<AxisConfig<ScaleName, any, ChartsYAxisProps>, 'id'>;
+  yAxis?: MakeOptional<AxisConfig<ScaleName, any, 'y'>, 'id'>;
   axisHighlight?: ChartsAxisHighlightProps;
   /**
    * Type of plot used.
@@ -396,7 +396,6 @@ SparkLineChart.propTypes = {
    * Notice it is a single [[AxisConfig]] object, not an array of configuration.
    */
   xAxis: PropTypes.shape({
-    axis: PropTypes.oneOf(['x']),
     classes: PropTypes.object,
     colorMap: PropTypes.oneOfType([
       PropTypes.shape({
@@ -464,7 +463,6 @@ SparkLineChart.propTypes = {
    * Notice it is a single [[AxisConfig]] object, not an array of configuration.
    */
   yAxis: PropTypes.shape({
-    axis: PropTypes.oneOf(['y']),
     classes: PropTypes.object,
     colorMap: PropTypes.oneOfType([
       PropTypes.shape({

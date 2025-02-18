@@ -1,19 +1,18 @@
 import { MakeOptional } from '@mui/x-internals/types';
 import { DEFAULT_X_AXIS_KEY, DEFAULT_Y_AXIS_KEY, DEFAULT_AXIS_SIZE } from '../../../../constants';
 import { AxisConfig, ScaleName } from '../../../../models';
-import { ChartsXAxisProps, ChartsYAxisProps } from '../../../../models/axis';
 import { DatasetType } from '../../../../models/seriesType/config';
 
 export function defaultizeAxis(
-  inAxis: MakeOptional<AxisConfig<ScaleName, any, ChartsXAxisProps>, 'id'>[] | undefined,
+  inAxis: MakeOptional<AxisConfig<ScaleName, any, 'x'>, 'id'>[] | undefined,
   dataset: DatasetType | undefined,
   axisName: 'x',
-): AxisConfig<ScaleName, any, ChartsXAxisProps>[];
+): AxisConfig<ScaleName, any, 'x'>[];
 export function defaultizeAxis(
-  inAxis: MakeOptional<AxisConfig<ScaleName, any, ChartsYAxisProps>, 'id'>[] | undefined,
+  inAxis: MakeOptional<AxisConfig<ScaleName, any, 'y'>, 'id'>[] | undefined,
   dataset: DatasetType | undefined,
   axisName: 'y',
-): AxisConfig<ScaleName, any, ChartsYAxisProps>[];
+): AxisConfig<ScaleName, any, 'y'>[];
 export function defaultizeAxis(
   inAxis: MakeOptional<AxisConfig, 'id'>[] | undefined,
   dataset: DatasetType | undefined,

@@ -1,5 +1,5 @@
 import { isDefined } from '../../../isDefined';
-import { AxisId, ChartsXAxisProps, ChartsYAxisProps, ScaleName } from '../../../../models/axis';
+import { AxisId, ScaleName } from '../../../../models/axis';
 import { CartesianChartSeriesType } from '../../../../models/seriesType/config';
 import { ProcessedSeries } from '../../corePlugins/useChartSeries';
 import { AxisConfig } from '../../../../models';
@@ -23,20 +23,14 @@ export function createAxisFilterMapper(params: {
   seriesConfig: ChartSeriesConfig<CartesianChartSeriesType>;
   formattedSeries: ProcessedSeries;
   direction: 'x';
-}): (
-  axis: AxisConfig<ScaleName, any, ChartsXAxisProps>,
-  axisIndex: number,
-) => ExtremumFilter | null;
+}): (axis: AxisConfig<ScaleName, any, 'x'>, axisIndex: number) => ExtremumFilter | null;
 export function createAxisFilterMapper(params: {
   zoomMap: Map<AxisId, ZoomData>;
   zoomOptions: Record<AxisId, DefaultizedZoomOptions>;
   seriesConfig: ChartSeriesConfig<CartesianChartSeriesType>;
   formattedSeries: ProcessedSeries;
   direction: 'y';
-}): (
-  axis: AxisConfig<ScaleName, any, ChartsYAxisProps>,
-  axisIndex: number,
-) => ExtremumFilter | null;
+}): (axis: AxisConfig<ScaleName, any, 'y'>, axisIndex: number) => ExtremumFilter | null;
 export function createAxisFilterMapper({
   zoomMap,
   zoomOptions,

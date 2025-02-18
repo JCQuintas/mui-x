@@ -374,7 +374,6 @@ LineChartPro.propTypes = {
    */
   xAxis: PropTypes.arrayOf(
     PropTypes.shape({
-      axis: PropTypes.oneOf(['x']),
       classes: PropTypes.object,
       colorMap: PropTypes.oneOfType([
         PropTypes.shape({
@@ -463,7 +462,6 @@ LineChartPro.propTypes = {
    */
   yAxis: PropTypes.arrayOf(
     PropTypes.shape({
-      axis: PropTypes.oneOf(['y']),
       classes: PropTypes.object,
       colorMap: PropTypes.oneOfType([
         PropTypes.shape({

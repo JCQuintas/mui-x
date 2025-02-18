@@ -10,8 +10,6 @@ import { ChartsTooltipProps } from '@mui/x-charts/ChartsTooltip';
 import {
   ChartsAxisSlots,
   ChartsAxisSlotProps,
-  ChartsXAxisProps,
-  ChartsYAxisProps,
   AxisConfig,
   ChartSeriesConfig,
 } from '@mui/x-charts/internals';
@@ -56,13 +54,13 @@ export interface HeatmapProps
    * If not provided, a default axis config is used.
    * An array of [[AxisConfig]] objects.
    */
-  xAxis: MakeOptional<AxisConfig<'band', any, ChartsXAxisProps>, 'id' | 'scaleType'>[];
+  xAxis: MakeOptional<AxisConfig<'band', any, 'x'>, 'id' | 'scaleType'>[];
   /**
    * The configuration of the y-axes.
    * If not provided, a default axis config is used.
    * An array of [[AxisConfig]] objects.
    */
-  yAxis: MakeOptional<AxisConfig<'band', any, ChartsYAxisProps>, 'id' | 'scaleType'>[];
+  yAxis: MakeOptional<AxisConfig<'band', any, 'y'>, 'id' | 'scaleType'>[];
   /**
    * The series to display in the bar chart.
    * An array of [[HeatmapSeriesType]] objects.
@@ -309,7 +307,6 @@ Heatmap.propTypes = {
    */
   xAxis: PropTypes.arrayOf(
     PropTypes.shape({
-      axis: PropTypes.oneOf(['x']),
       barGapRatio: PropTypes.number,
       categoryGapRatio: PropTypes.number,
       classes: PropTypes.object,
@@ -400,7 +397,6 @@ Heatmap.propTypes = {
    */
   yAxis: PropTypes.arrayOf(
     PropTypes.shape({
-      axis: PropTypes.oneOf(['y']),
       barGapRatio: PropTypes.number,
       categoryGapRatio: PropTypes.number,
       classes: PropTypes.object,

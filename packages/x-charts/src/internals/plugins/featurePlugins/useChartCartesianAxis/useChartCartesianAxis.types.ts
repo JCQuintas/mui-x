@@ -4,8 +4,6 @@ import type { ChartSeriesType, DatasetType } from '../../../../models/seriesType
 import type {
   AxisDefaultized,
   ScaleName,
-  ChartsXAxisProps,
-  ChartsYAxisProps,
   AxisId,
   AxisConfig,
   ChartsAxisData,
@@ -13,21 +11,20 @@ import type {
 import type { UseChartSeriesSignature } from '../../corePlugins/useChartSeries';
 import type { ZoomData, ZoomOptions } from './zoom.types';
 import type { UseChartInteractionSignature } from '../useChartInteraction';
-import type { ChartsAxisProps } from '../../../../ChartsAxis';
 
-export type DefaultizedAxisConfig<AxisProps extends ChartsAxisProps> = {
-  [axisId: AxisId]: AxisDefaultized<ScaleName, any, AxisProps>;
+export type DefaultizedAxisConfig<AxisDirection extends 'x' | 'y'> = {
+  [axisId: AxisId]: AxisDefaultized<ScaleName, any, AxisDirection>;
 };
 
 export type CartesianContextState = {
   /**
    * Mapping from x-axis key to scaling configuration.
    */
-  xAxis: DefaultizedAxisConfig<ChartsXAxisProps>;
+  xAxis: DefaultizedAxisConfig<'x'>;
   /**
    * Mapping from y-axis key to scaling configuration.
    */
-  yAxis: DefaultizedAxisConfig<ChartsYAxisProps>;
+  yAxis: DefaultizedAxisConfig<'y'>;
   /**
    * The x-axes IDs sorted by order they got provided.
    */
@@ -44,13 +41,13 @@ export interface UseChartCartesianAxisParameters {
    * If not provided, a default axis config is used.
    * An array of [[AxisConfig]] objects.
    */
-  xAxis?: MakeOptional<AxisConfig<ScaleName, any, ChartsXAxisProps>, 'id'>[];
+  xAxis?: MakeOptional<AxisConfig<ScaleName, any, 'x'>, 'id'>[];
   /**
    * The configuration of the y-axes.
    * If not provided, a default axis config is used.
    * An array of [[AxisConfig]] objects.
    */
-  yAxis?: MakeOptional<AxisConfig<ScaleName, any, ChartsYAxisProps>, 'id'>[];
+  yAxis?: MakeOptional<AxisConfig<ScaleName, any, 'y'>, 'id'>[];
   /**
    * An array of objects that can be used to populate series and axes data using their `dataKey` property.
    */
@@ -71,8 +68,8 @@ export interface UseChartCartesianAxisParameters {
 }
 
 export type UseChartCartesianAxisDefaultizedParameters = UseChartCartesianAxisParameters & {
-  defaultizedXAxis: AxisConfig<ScaleName, any, ChartsXAxisProps>[];
-  defaultizedYAxis: AxisConfig<ScaleName, any, ChartsYAxisProps>[];
+  defaultizedXAxis: AxisConfig<ScaleName, any, 'x'>[];
+  defaultizedYAxis: AxisConfig<ScaleName, any, 'y'>[];
 };
 
 export interface DefaultizedZoomOptions extends Required<ZoomOptions> {
@@ -89,8 +86,8 @@ export interface UseChartCartesianAxisState {
     zoomData: ZoomData[];
   };
   cartesianAxis: {
-    x: AxisConfig<ScaleName, any, ChartsXAxisProps>[];
-    y: AxisConfig<ScaleName, any, ChartsYAxisProps>[];
+    x: AxisConfig<ScaleName, any, 'x'>[];
+    y: AxisConfig<ScaleName, any, 'y'>[];
   };
 }
 

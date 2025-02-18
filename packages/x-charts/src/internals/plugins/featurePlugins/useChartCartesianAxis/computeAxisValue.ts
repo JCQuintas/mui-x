@@ -1,13 +1,6 @@
 import { scaleBand, scalePoint, scaleTime } from '@mui/x-charts-vendor/d3-scale';
 import { AxisConfig, ScaleName } from '../../../../models';
-import {
-  ChartsXAxisProps,
-  ChartsAxisProps,
-  ChartsYAxisProps,
-  isBandScaleConfig,
-  isPointScaleConfig,
-  AxisId,
-} from '../../../../models/axis';
+import { isBandScaleConfig, isPointScaleConfig, AxisId } from '../../../../models/axis';
 import { CartesianChartSeriesType, ChartSeriesType } from '../../../../models/seriesType/config';
 import { getColorScale, getOrdinalColorScale } from '../../../colorScale';
 import { getTickNumber } from '../../../../hooks/useTicks';
@@ -23,7 +16,7 @@ import { GetZoomAxisFilters, ZoomData } from './zoom.types';
 function getRange(
   drawingArea: ChartDrawingArea,
   axisDirection: 'x' | 'y', // | 'rotation' | 'radius',
-  axis: AxisConfig<ScaleName, any, ChartsAxisProps>,
+  axis: AxisConfig<ScaleName, any>,
 ): [number, number] {
   const range: [number, number] =
     axisDirection === 'x'
@@ -36,9 +29,9 @@ function getRange(
 const isDateData = (data?: any[]): data is Date[] => data?.[0] instanceof Date;
 
 function createDateFormatter(
-  axis: AxisConfig<'band' | 'point', any, ChartsAxisProps>,
+  axis: AxisConfig<'band' | 'point', any>,
   range: number[],
-): AxisConfig<'band' | 'point', any, ChartsAxisProps>['valueFormatter'] {
+): AxisConfig<'band' | 'point', any>['valueFormatter'] {
   const timeScale = scaleTime(axis.data!, range);
 
   return (v, { location }) =>
@@ -48,8 +41,8 @@ function createDateFormatter(
 const DEFAULT_CATEGORY_GAP_RATIO = 0.2;
 const DEFAULT_BAR_GAP_RATIO = 0.1;
 
-type ComputeResult<T extends ChartsAxisProps> = {
-  axis: DefaultizedAxisConfig<T>;
+type ComputeResult<AxisDirection extends 'x' | 'y'> = {
+  axis: DefaultizedAxisConfig<AxisDirection>;
   axisIds: string[];
 };
 
@@ -64,16 +57,16 @@ type ComputeCommonParams<T extends ChartSeriesType = ChartSeriesType> = {
 
 export function computeAxisValue<T extends ChartSeriesType>(
   options: ComputeCommonParams<T> & {
-    axis?: AxisConfig<ScaleName, any, ChartsYAxisProps>[];
+    axis?: AxisConfig<ScaleName, any, 'y'>[];
     axisDirection: 'y';
   },
-): ComputeResult<ChartsYAxisProps>;
+): ComputeResult<'y'>;
 export function computeAxisValue<T extends ChartSeriesType>(
   options: ComputeCommonParams<T> & {
-    axis?: AxisConfig<ScaleName, any, ChartsXAxisProps>[];
+    axis?: AxisConfig<ScaleName, any, 'x'>[];
     axisDirection: 'x';
   },
-): ComputeResult<ChartsXAxisProps>;
+): ComputeResult<'x'>;
 export function computeAxisValue<T extends ChartSeriesType>({
   drawingArea,
   formattedSeries,
@@ -85,7 +78,7 @@ export function computeAxisValue<T extends ChartSeriesType>({
   getFilters,
 }: ComputeCommonParams<T> & {
   axis?: AxisConfig[];
-  axisDirection: 'x' | 'y'; // | 'radius' | 'rotation';
+  axisDirection: 'x' | 'y';
 }) {
   if (allAxis === undefined) {
     return {
@@ -94,9 +87,9 @@ export function computeAxisValue<T extends ChartSeriesType>({
     };
   }
 
-  const completeAxis: DefaultizedAxisConfig<ChartsAxisProps> = {};
+  const completeAxis: DefaultizedAxisConfig<'x' | 'y'> = {};
   allAxis.forEach((eachAxis, axisIndex) => {
-    const axis = eachAxis as Readonly<AxisConfig<ScaleName, any, Readonly<ChartsAxisProps>>>;
+    const axis = eachAxis as Readonly<AxisConfig<ScaleName, any, 'x' | 'y'>>;
     const zoomOption = zoomOptions?.[axis.id];
     const zoom = zoomMap?.get(axis.id);
     const zoomRange: [number, number] = zoom ? [zoom.start, zoom.end] : [0, 100];
