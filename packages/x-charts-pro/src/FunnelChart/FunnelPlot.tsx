@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { line as d3Line } from '@mui/x-charts-vendor/d3-shape';
 import { ComputedAxis, cartesianSeriesTypes, useSelector, useStore } from '@mui/x-charts/internals';
-import { FunnelItemIdentifier, FunnelDataPoints } from './funnel.types';
+import { FunnelItemIdentifier, FunnelDataPoints, PositionGetter } from './funnel.types';
 import { FunnelSection } from './FunnelSection';
 import { alignLabel, positionLabel } from './labelUtils';
 import { FunnelPlotSlotExtension } from './funnelPlotSlots.types';
@@ -14,6 +14,7 @@ import {
   selectorChartXAxis,
   selectorChartYAxis,
 } from './funnelAxisPlugin/useChartFunnelAxisRendering.selectors';
+import { isBandScale } from '@mui/x-charts/internals/isBandScale';
 
 cartesianSeriesTypes.addType('funnel');
 
@@ -72,14 +73,15 @@ const useAggregatedData = (gapIn: number | undefined) => {
       const xScale = xAxis[xAxisId].scale;
       const yScale = yAxis[yAxisId].scale;
 
-      const xPosition = (
-        value: number,
-        bandIndex: number,
-        stackOffset?: number,
-        useBand?: boolean,
+      const xPosition: PositionGetter = (
+        value,
+        bandIndex,
+        bandIdentifier,
+        stackOffset,
+        useBand,
       ) => {
-        if (isXAxisBand) {
-          const position = xScale(bandIndex)!;
+        if (isBandScale(xScale)) {
+          const position = xScale(bandIdentifier)!;
           return useBand ? position + bandWidth : position;
         }
         return xScale(isHorizontal ? value + (stackOffset || 0) : value)!;
@@ -88,11 +90,12 @@ const useAggregatedData = (gapIn: number | undefined) => {
       const yPosition = (
         value: number,
         bandIndex: number,
+        bandIdentifier: string | number,
         stackOffset?: number,
         useBand?: boolean,
       ) => {
-        if (isYAxisBand) {
-          const position = yScale(bandIndex);
+        if (isBandScale(yScale)) {
+          const position = yScale(bandIdentifier);
           return useBand ? position! + bandWidth : position!;
         }
         return yScale(isHorizontal ? value : value + (stackOffset || 0))!;
@@ -100,12 +103,24 @@ const useAggregatedData = (gapIn: number | undefined) => {
 
       const allY = currentSeries.dataPoints.flatMap((d, dataIndex) =>
         d.flatMap((v) =>
-          yPosition(v.y, baseScaleConfig.data?.[dataIndex], v.stackOffset, v.useBandWidth),
+          yPosition(
+            v.y,
+            dataIndex,
+            baseScaleConfig.data?.[dataIndex],
+            v.stackOffset,
+            v.useBandWidth,
+          ),
         ),
       );
       const allX = currentSeries.dataPoints.flatMap((d, dataIndex) =>
         d.flatMap((v) =>
-          xPosition(v.x, baseScaleConfig.data?.[dataIndex], v.stackOffset, v.useBandWidth),
+          xPosition(
+            v.x,
+            dataIndex,
+            baseScaleConfig.data?.[dataIndex],
+            v.stackOffset,
+            v.useBandWidth,
+          ),
         ),
       );
       const minPoint = {
@@ -144,10 +159,22 @@ const useAggregatedData = (gapIn: number | undefined) => {
 
         const line = d3Line<FunnelDataPoints>()
           .x((d) =>
-            xPosition(d.x, baseScaleConfig.data?.[dataIndex], d.stackOffset, d.useBandWidth),
+            xPosition(
+              d.x,
+              dataIndex,
+              baseScaleConfig.data?.[dataIndex],
+              d.stackOffset,
+              d.useBandWidth,
+            ),
           )
           .y((d) =>
-            yPosition(d.y, baseScaleConfig.data?.[dataIndex], d.stackOffset, d.useBandWidth),
+            yPosition(
+              d.y,
+              dataIndex,
+              baseScaleConfig.data?.[dataIndex],
+              d.stackOffset,
+              d.useBandWidth,
+            ),
           )
           .curve(curve);
 
