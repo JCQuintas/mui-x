@@ -84,7 +84,10 @@ const useAggregatedData = (gapIn: number | undefined) => {
           const position = xScale(bandIdentifier)!;
           return useBand ? position + bandWidth : position;
         }
-        return xScale(isHorizontal ? value + (stackOffset || 0) : value)!;
+        if (isHorizontal) {
+          return xScale(value + (stackOffset || 0))! + bandIndex * gap;
+        }
+        return xScale(value)!;
       };
 
       const yPosition = (
@@ -98,7 +101,10 @@ const useAggregatedData = (gapIn: number | undefined) => {
           const position = yScale(bandIdentifier);
           return useBand ? position! + bandWidth : position!;
         }
-        return yScale(isHorizontal ? value : value + (stackOffset || 0))!;
+        if (isHorizontal) {
+          return yScale(value)!;
+        }
+        return yScale(value + (stackOffset || 0))! + bandIndex * gap;
       };
 
       const allY = currentSeries.dataPoints.flatMap((d, dataIndex) =>
@@ -124,12 +130,12 @@ const useAggregatedData = (gapIn: number | undefined) => {
         ),
       );
       const minPoint = {
-        x: Math.min(...allX) + gap / 2,
-        y: Math.min(...allY) + gap / 2,
+        x: Math.min(...allX),
+        y: Math.min(...allY),
       };
       const maxPoint = {
-        x: Math.max(...allX) - gap / 2,
-        y: Math.max(...allY) - gap / 2,
+        x: Math.max(...allX),
+        y: Math.max(...allY),
       };
 
       return currentSeries.dataPoints.flatMap((values, dataIndex) => {

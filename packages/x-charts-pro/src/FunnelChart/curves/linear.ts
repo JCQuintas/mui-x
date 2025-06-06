@@ -7,7 +7,7 @@ import { lerpX, lerpY } from './utils';
 /**
  * This is a custom "linear" curve generator.
  * It draws straight lines for the 4 provided points,
- * with the option to add a gap between sections while also properly handling the border radius.
+ * with the option to properly handling the border radius.
  *
  * The implementation is based on the d3-shape linear curve generator.
  * https://github.com/d3/d3-shape/blob/a82254af78f08799c71d7ab25df557c4872a3c51/src/curve/linear.js
@@ -51,7 +51,7 @@ export class Linear implements CurveGenerator {
   ) {
     this.context = context;
     this.isHorizontal = isHorizontal ?? false;
-    this.gap = (gap ?? 0) / 2;
+    this.gap = gap ?? 0;
     this.position = position ?? 0;
     this.sections = sections ?? 1;
     this.borderRadius = borderRadius ?? 0;
@@ -121,38 +121,6 @@ export class Linear implements CurveGenerator {
       return;
     }
 
-    // Add gaps where they are needed.
-    this.points = this.points.map((point, index) => {
-      const slopeStart = this.points.at(index <= 1 ? 0 : 2)!;
-      const slopeEnd = this.points.at(index <= 1 ? 1 : 3)!;
-      if (this.isHorizontal) {
-        const yGetter = lerpY(
-          slopeStart.x - this.gap,
-          slopeStart.y,
-          slopeEnd.x - this.gap,
-          slopeEnd.y,
-        );
-        const xGap = point.x + (index === 0 || index === 3 ? this.gap : -this.gap);
-
-        return {
-          x: xGap,
-          y: yGetter(xGap),
-        };
-      }
-
-      const xGetter = lerpX(
-        slopeStart.x,
-        slopeStart.y - this.gap,
-        slopeEnd.x,
-        slopeEnd.y - this.gap,
-      );
-      const yGap = point.y + (index === 0 || index === 3 ? this.gap : -this.gap);
-      return {
-        x: xGetter(yGap),
-        y: yGap,
-      };
-    });
-
     if (this.pointShape === 'sharp') {
       // In the last section, to form a triangle we need 3 points instead of 4
       // Else the algorithm will break.
@@ -179,12 +147,8 @@ export class Linear implements CurveGenerator {
             ? { x: this.max.x, y: (this.max.y + this.min.y) / 2 }
             : { x: (this.max.x + this.min.x) / 2, y: this.max.y },
           // Then other points
-          this.isHorizontal
-            ? { x: firstPoint.x, y: firstPoint.y - this.gap / 2 }
-            : { x: firstPoint.x + this.gap / 2, y: firstPoint.y },
-          this.isHorizontal
-            ? { x: secondPoint.x, y: secondPoint.y + this.gap / 2 }
-            : { x: secondPoint.x - this.gap / 2, y: secondPoint.y },
+          firstPoint,
+          secondPoint,
         ];
       }
     }
