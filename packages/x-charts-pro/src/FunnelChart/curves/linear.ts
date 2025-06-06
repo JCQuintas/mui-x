@@ -121,6 +121,28 @@ export class Linear implements CurveGenerator {
       return;
     }
 
+    // Add gaps where they are needed.
+    this.points = this.points.map((point, index) => {
+      const slopeStart = this.points.at(index <= 1 ? 0 : 3)!;
+      const slopeEnd = this.points.at(index <= 1 ? 1 : 2)!;
+
+      if (this.isHorizontal) {
+        const yGetter = lerpY(slopeStart.x - this.gap, slopeStart.y, slopeEnd.x, slopeEnd.y);
+
+        return {
+          x: point.x,
+          y: yGetter(point.x),
+        };
+      }
+
+      const xGetter = lerpX(slopeStart.x, slopeStart.y - this.gap, slopeEnd.x, slopeEnd.y);
+
+      return {
+        x: xGetter(point.y),
+        y: point.y,
+      };
+    });
+
     if (this.pointShape === 'sharp') {
       // In the last section, to form a triangle we need 3 points instead of 4
       // Else the algorithm will break.
