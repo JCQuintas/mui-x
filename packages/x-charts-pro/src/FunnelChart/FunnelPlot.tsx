@@ -13,17 +13,13 @@ import { FunnelSectionLabel } from './FunnelSectionLabel';
 import {
   selectorChartXAxis,
   selectorChartYAxis,
+  selectorFunnelGap,
 } from './funnelAxisPlugin/useChartFunnelAxisRendering.selectors';
 import { isBandScale } from '@mui/x-charts/internals/isBandScale';
 
 cartesianSeriesTypes.addType('funnel');
 
 export interface FunnelPlotProps extends FunnelPlotSlotExtension {
-  /**
-   * The gap, in pixels, between funnel sections.
-   * @default 0
-   */
-  gap?: number;
   /**
    * Callback fired when a funnel item is clicked.
    * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
@@ -35,12 +31,12 @@ export interface FunnelPlotProps extends FunnelPlotSlotExtension {
   ) => void;
 }
 
-const useAggregatedData = (gapIn: number | undefined) => {
+const useAggregatedData = () => {
   const seriesData = useFunnelSeriesContext();
   const store = useStore();
   const { axis: xAxis, axisIds: xAxisIds } = useSelector(store, selectorChartXAxis);
   const { axis: yAxis, axisIds: yAxisIds } = useSelector(store, selectorChartYAxis);
-  const gap = gapIn ?? 0;
+  const gap = useSelector(store, selectorFunnelGap);
 
   const allData = React.useMemo(() => {
     if (seriesData === undefined) {
@@ -217,9 +213,9 @@ const useAggregatedData = (gapIn: number | undefined) => {
 };
 
 function FunnelPlot(props: FunnelPlotProps) {
-  const { onItemClick, gap, ...other } = props;
+  const { onItemClick, ...other } = props;
 
-  const data = useAggregatedData(gap);
+  const data = useAggregatedData();
 
   return (
     <React.Fragment>
@@ -264,11 +260,6 @@ FunnelPlot.propTypes = {
   // | These PropTypes are generated from the TypeScript type definitions |
   // | To update them edit the TypeScript types and run "pnpm proptypes"  |
   // ----------------------------------------------------------------------
-  /**
-   * The gap, in pixels, between funnel sections.
-   * @default 0
-   */
-  gap: PropTypes.number,
   /**
    * Callback fired when a funnel item is clicked.
    * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
