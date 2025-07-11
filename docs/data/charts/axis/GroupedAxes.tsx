@@ -8,11 +8,28 @@ export default function GroupedAxes() {
         {
           scaleType: 'band',
           data: time,
-          height: 50,
+          height: 120,
           getGrouping: (value: Date) => [
             value.toLocaleDateString('en-US', { month: 'short' }),
             formatQuarterYear(value),
+            value.toLocaleDateString('en-US', { year: 'numeric' }),
+            value.toLocaleDateString('en-US', { year: '2-digit' }),
           ],
+          position: 'top',
+          tickSizeIncrement: 15,
+        },
+        {
+          scaleType: 'band',
+          data: time,
+          height: 120,
+          getGrouping: (value: Date) => [
+            value.toLocaleDateString('en-US', { month: 'short' }),
+            formatQuarterYear(value),
+            value.toLocaleDateString('en-US', { year: 'numeric' }),
+            value.toLocaleDateString('en-US', { year: '2-digit' }),
+          ],
+          position: 'bottom',
+          tickSizeIncrement: 15,
         },
       ]}
       {...chartConfig}
@@ -39,9 +56,14 @@ const time = [
   new Date(2015, 9, 1),
   new Date(2015, 10, 1),
   new Date(2015, 11, 1),
+  new Date(2016, 0, 1),
 ];
-const a = [4000, 3000, 2000, 2780, 1890, 2390, 3490, 2400, 1398, 9800, 3908, 4800];
-const b = [2400, 1398, 9800, 3908, 4800, 3800, 4300, 2181, 2500, 2100, 3000, 2000];
+const a = [
+  4000, 3000, 2000, 2780, 1890, 2390, 3490, 2400, 1398, 9800, 3908, 4800, 2040,
+];
+const b = [
+  2400, 1398, 9800, 3908, 4800, 3800, 4300, 2181, 2500, 2100, 3000, 2000, 2040,
+];
 
 const getPercents = (array: number[]) =>
   array.map((v, index) => (100 * v) / (a[index] + b[index]));

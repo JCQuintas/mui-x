@@ -134,15 +134,19 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
         return {
           ...grouped.original,
           value: groupValue,
-          formattedValue: `${groupValue}`,
+          formattedValue: groupValue === undefined ? groupValue : `${groupValue}`,
           groupIndex,
         } as TickItemType;
       });
     })
-    .filter(
-      (item, i, arr) =>
-        arr.findIndex((v) => v.value === item.value && v.groupIndex === item.groupIndex) === i,
-    );
+    .sort((a, b) => (a.groupIndex ?? 0) - (b.groupIndex ?? 0))
+    // filter duplicates only if they are one after another
+    .filter((item, index, arr) => {
+      if (index === 0 || item.groupIndex !== arr[index - 1].groupIndex) {
+        return true;
+      }
+      return item.value !== arr[index - 1].value;
+    });
 
   const groupedXTicks = xTicks.reduce((acc, item) => {
     if (!acc[item.groupIndex ?? 0]) {
@@ -233,30 +237,44 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
       {xTicks.map((item, index) => {
         const { offset: tickOffset, labelOffset } = item;
         const xTickLabel = labelOffset ?? 0;
-        const yTickLabel = positionSign * (tickSize + TICK_LABEL_GAP);
+        const yTickLabel = tickSize + TICK_LABEL_GAP;
 
         const showTick = instance.isXInside(tickOffset);
         const tickLabel = tickLabels.get(item);
         const showTickLabel = visibleLabels.has(item);
+        const groupIndex = item.groupIndex ?? 0;
 
         return (
           <g
             key={index}
-            transform={`translate(${tickOffset}, ${tickSize * (item.groupIndex ?? 0)})`}
+            transform={`translate(${tickOffset}, ${
+              positionSign * (groupIndex === 0 ? 0 : yTickLabel * groupIndex)
+            })`}
             className={classes.tickContainer}
           >
             {!disableTicks && showTick && (
               <Tick
+                // The first group we "fill" the gap between first row and second row of ticks.
+                y1={groupIndex === 0 ? 0 : positionSign * -TICK_LABEL_GAP}
                 y2={positionSign * tickSize}
                 className={classes.tick}
                 {...slotProps?.axisTick}
+                strokeWidth={20 - groupIndex * 5}
+                style={{ stroke: ['blue', 'green', 'red', 'violet'][groupIndex] }}
               />
             )}
+            <line
+              {...slotProps?.axisTick}
+              y1={positionSign * tickSize}
+              y2={positionSign * yTickLabel}
+              strokeWidth={30}
+              stroke={'black'}
+            />
 
             {tickLabel !== undefined && showTickLabel && (
               <TickLabel
                 x={xTickLabel}
-                y={yTickLabel}
+                y={positionSign * yTickLabel}
                 data-testid="ChartsXAxisTickLabel"
                 {...axisTickLabelProps}
                 text={tickLabel}
