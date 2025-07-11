@@ -70,6 +70,7 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     offset,
     height: axisHeight,
     getGrouping,
+    tickSizeIncrement: tickSizeIncrementProp,
   } = defaultizedProps;
 
   const theme = useTheme();
@@ -224,6 +225,8 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
       )
     : new Map(Array.from(visibleLabels).map((item) => [item, item.formattedValue]));
 
+  const tickSizeIncrement = tickSizeIncrementProp ?? 20;
+
   return (
     <XAxisRoot
       transform={`translate(0, ${position === 'bottom' ? top + height + offset : top - offset})`}
@@ -248,19 +251,17 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
           <g
             key={index}
             transform={`translate(${tickOffset}, ${
-              positionSign * (groupIndex === 0 ? 0 : yTickLabel * groupIndex)
+              positionSign * (groupIndex === 0 ? 0 : tickSizeIncrement * groupIndex)
             })`}
             className={classes.tickContainer}
           >
             {!disableTicks && showTick && (
               <Tick
                 // The first group we "fill" the gap between first row and second row of ticks.
-                y1={groupIndex === 0 ? 0 : positionSign * -TICK_LABEL_GAP}
+                y1={groupIndex === 0 ? 0 : positionSign * -1 * (tickSizeIncrement - tickSize)}
                 y2={positionSign * tickSize}
                 className={classes.tick}
                 {...slotProps?.axisTick}
-                strokeWidth={20 - groupIndex * 5}
-                style={{ stroke: ['blue', 'green', 'red', 'violet'][groupIndex] }}
               />
             )}
             <line
@@ -268,7 +269,7 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
               y1={positionSign * tickSize}
               y2={positionSign * yTickLabel}
               strokeWidth={30}
-              stroke={'black'}
+              // stroke={'black'}
             />
 
             {tickLabel !== undefined && showTickLabel && (

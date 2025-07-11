@@ -453,6 +453,12 @@ export type AxisConfig<
    * @returns {Array<string | number | Date>} The array of values that will be used to group the axis items.
    */
   getGrouping?: (value: V, dataIndex: number) => (string | number | Date)[];
+  /**
+   * The size of the gap between two groups.
+   * This is only used for grouped axes.
+   * @default {20}
+   */
+  tickSizeIncrement?: number;
 } & CommonAxisConfig<S, V> &
   Omit<Partial<AxisProps>, 'axisId'> &
   Partial<Omit<AxisScaleConfig[S], 'scale'>> &

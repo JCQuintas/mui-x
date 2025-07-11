@@ -8,28 +8,24 @@ export default function GroupedAxes() {
         {
           scaleType: 'band',
           data: time,
-          height: 120,
+          height: 40,
           getGrouping: (value: Date) => [
             value.toLocaleDateString('en-US', { month: 'short' }),
             formatQuarterYear(value),
             value.toLocaleDateString('en-US', { year: 'numeric' }),
-            value.toLocaleDateString('en-US', { year: '2-digit' }),
           ],
           position: 'top',
-          tickSizeIncrement: 15,
         },
         {
           scaleType: 'band',
           data: time,
-          height: 120,
+          height: 40,
           getGrouping: (value: Date) => [
             value.toLocaleDateString('en-US', { month: 'short' }),
             formatQuarterYear(value),
             value.toLocaleDateString('en-US', { year: 'numeric' }),
-            value.toLocaleDateString('en-US', { year: '2-digit' }),
           ],
           position: 'bottom',
-          tickSizeIncrement: 15,
         },
       ]}
       {...chartConfig}
