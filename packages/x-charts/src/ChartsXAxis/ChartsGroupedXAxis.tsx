@@ -62,13 +62,7 @@ const getGroupingConfig = (
 };
 
 /**
- * Demos:
- *
- * - [Axis](https://mui.com/x/react-charts/axis/)
- *
- * API:
- *
- * - [ChartsXAxis API](https://mui.com/x/api/charts/charts-x-axis/)
+ * @ignore - internal component.
  */
 function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
   const { xAxis, xAxisIds } = useXAxes();
