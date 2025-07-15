@@ -15,6 +15,12 @@ export default function GroupedAxes() {
             options: ['band', 'point', 'time'],
           },
           tickSize: { knob: 'slider', min: 0, max: 10, defaultValue: 6 },
+          tickSizeIncrement: {
+            knob: 'slider',
+            min: 0,
+            max: 20,
+            defaultValue: 16,
+          },
         } as const
       }
       renderDemo={(props) => (
@@ -25,6 +31,7 @@ export default function GroupedAxes() {
                 data: time,
                 scaleType: props.scaleType,
                 tickSize: props.tickSize,
+                tickSizeIncrement: props.tickSizeIncrement,
                 getGrouping: (value: Date) => [
                   value.toLocaleDateString('en-US', { month: 'short' }),
                   formatQuarterYear(value),

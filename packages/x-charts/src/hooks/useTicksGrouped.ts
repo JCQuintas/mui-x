@@ -21,6 +21,10 @@ export type GroupedTickItemType = {
   formattedValue?: string;
   offset: number;
   labelOffset: number;
+  /**
+   * In band scales, we remove some redundant ticks.
+   */
+  ignoreTick?: boolean;
   dataIndex?: number;
   /**
    * The index of the group this tick belongs to. If `getGrouping` returns `[[0, 1], [2, 3]]`
@@ -57,8 +61,15 @@ export function useTicksGrouped(
           (typeof tickInterval === 'function' && domain.filter(tickInterval)) ||
           (typeof tickInterval === 'object' && tickInterval) ||
           domain;
+        const entries = mapToGrouping(filteredDomain, getGrouping, scale);
+
+        if (entries.find((v) => v.offset === scale.range()[1])) {
+          // If the last tick is already at the end of the scale, we don't need to add a new one
+          return entries;
+        }
+
         return [
-          ...mapToGrouping(filteredDomain, getGrouping, scale),
+          ...entries,
 
           // Last tick
           {
@@ -119,6 +130,7 @@ function mapToGrouping(tickValues: any[], getGrouping: AxisConfig['getGrouping']
             : scale(value),
           groupIndex,
           dataIndex: i,
+          labelOffset: 0,
         }),
       );
     })
@@ -145,19 +157,21 @@ function mapToGrouping(tickValues: any[], getGrouping: AxisConfig['getGrouping']
         if (isBandScale(scale)) {
           const count = arr.filter((v) => v.syncIndex === item.syncIndex).length;
           const labelOffset = scale.step() * count * (offsetRatio.middle - offsetRatio.extremities);
-          acc.push({
-            ...item,
-            labelOffset,
-          });
+          const lastIndex = acc.findIndex((v) => v.dataIndex === item.dataIndex);
+          if (lastIndex > -1) {
+            acc[lastIndex].ignoreTick = true;
+          }
+          item.labelOffset = labelOffset;
+          acc.push(item);
         } else {
-          const lastIndex = arr.findIndex((v) => v.dataIndex === item.dataIndex);
-          acc.splice(lastIndex, 1, {
-            ...item,
-            labelOffset: 0,
-          });
+          const lastIndex = acc.findIndex((v) => v.dataIndex === item.dataIndex);
+          if (lastIndex === -1) {
+            acc.push(item);
+          } else {
+            acc[lastIndex] = item;
+          }
         }
       }
-
       return acc;
     }, [] as GroupedTickItemType[]);
 }

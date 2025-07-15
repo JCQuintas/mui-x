@@ -3,11 +3,8 @@ import * as React from 'react';
 import useSlotProps from '@mui/utils/useSlotProps';
 import { useThemeProps, useTheme } from '@mui/material/styles';
 import { useRtl } from '@mui/system/RtlProvider';
-import { useIsHydrated } from '../hooks/useIsHydrated';
-import { getStringSize } from '../internals/domUtils';
 import { ChartsXAxisProps } from '../models/axis';
 import { ChartsText, ChartsTextProps } from '../ChartsText';
-import { useMounted } from '../hooks/useMounted';
 import { useDrawingArea } from '../hooks/useDrawingArea';
 import { isInfinity } from '../internals/isInfinity';
 import { isBandScale } from '../internals/isBandScale';
@@ -15,16 +12,8 @@ import { useChartContext } from '../context/ChartProvider/useChartContext';
 import { useXAxes } from '../hooks/useAxis';
 import { getDefaultBaseline, getDefaultTextAnchor } from '../ChartsText/defaultTextPlacement';
 import { invertTextAnchor } from '../internals/invertTextAnchor';
-import { shortenLabels } from './shortenLabels';
-import { getVisibleLabels } from './getVisibleLabels';
-import {
-  defaultProps,
-  AXIS_LABEL_TICK_LABEL_GAP,
-  TICK_LABEL_GAP,
-  XAxisRoot,
-  useUtilityClasses,
-} from './utilities';
-import { useTicksGrouped, type GroupedTickItemType } from '../hooks/useTicksGrouped';
+import { defaultProps, TICK_LABEL_GAP, XAxisRoot, useUtilityClasses } from './utilities';
+import { useTicksGrouped } from '../hooks/useTicksGrouped';
 
 /**
  * Demos:
@@ -38,8 +27,6 @@ import { useTicksGrouped, type GroupedTickItemType } from '../hooks/useTicksGrou
 function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
   const { xAxis, xAxisIds } = useXAxes();
   const { scale: xScale, tickNumber, reverse, ...settings } = xAxis[inProps.axisId ?? xAxisIds[0]];
-
-  const isMounted = useMounted();
 
   // eslint-disable-next-line material-ui/mui-name-matches-component-name
   const themedProps = useThemeProps({ props: { ...settings, ...inProps }, name: 'MuiChartsXAxis' });
@@ -61,10 +48,8 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     slots,
     slotProps,
     tickInterval,
-    tickLabelInterval,
     tickPlacement,
     tickLabelPlacement,
-    tickLabelMinGap,
     sx,
     offset,
     height: axisHeight,
@@ -78,7 +63,6 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
   const drawingArea = useDrawingArea();
   const { left, top, width, height } = drawingArea;
   const { instance } = useChartContext();
-  const isHydrated = useIsHydrated();
 
   const tickSize = disableTicks ? 4 : tickSizeProp;
 
@@ -124,30 +108,6 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     getGrouping,
   });
 
-  const groupedXTicks = xTicks.reduce((acc, item) => {
-    if (!acc[item.groupIndex ?? 0]) {
-      acc[item.groupIndex ?? 0] = [];
-    }
-    acc[item.groupIndex ?? 0].push(item);
-    return acc;
-  }, [] as GroupedTickItemType[][]);
-
-  const visibleLabels = new Set(
-    groupedXTicks.reduce((acc, v) => {
-      const set = getVisibleLabels(v, {
-        tickLabelStyle: axisTickLabelProps.style,
-        tickLabelInterval,
-        tickLabelMinGap,
-        reverse,
-        isMounted,
-        isXInside: instance.isXInside,
-      });
-
-      acc.push(...set);
-      return acc;
-    }, [] as GroupedTickItemType[]),
-  );
-
   const axisLabelProps = useSlotProps({
     elementType: Label,
     externalSlotProps: slotProps?.axisLabel,
@@ -178,29 +138,14 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     return null;
   }
 
-  const labelHeight = label ? getStringSize(label, axisLabelProps.style).height : 0;
   const labelRefPoint = {
     x: left + width / 2,
     y: positionSign * axisHeight,
   };
 
-  /* If there's an axis title, the tick labels have less space to render  */
-  const tickLabelsMaxHeight = Math.max(
-    0,
-    axisHeight - (label ? labelHeight + AXIS_LABEL_TICK_LABEL_GAP : 0) - tickSize - TICK_LABEL_GAP,
-  );
+  const tickLabels = new Map(Array.from(xTicks).map((item) => [item, item.formattedValue]));
 
-  const tickLabels = isHydrated
-    ? shortenLabels(
-        visibleLabels,
-        drawingArea,
-        tickLabelsMaxHeight,
-        isRtl,
-        axisTickLabelProps.style,
-      )
-    : new Map(Array.from(visibleLabels).map((item) => [item, item.formattedValue]));
-
-  const tickSizeIncrement = tickSizeIncrementProp ?? 20;
+  const tickSizeIncrement = tickSizeIncrementProp ?? 16;
 
   return (
     <XAxisRoot
@@ -215,42 +160,28 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
       {xTicks.map((item, index) => {
         const { offset: tickOffset, labelOffset } = item;
         const xTickLabel = labelOffset ?? 0;
-        const yTickLabel = tickSize + TICK_LABEL_GAP;
 
         const showTick = instance.isXInside(tickOffset);
         const tickLabel = tickLabels.get(item);
-        const showTickLabel = visibleLabels.has(item);
+        const ignoreTick = item.ignoreTick ?? false;
         const groupIndex = item.groupIndex ?? 0;
-        const yGroupOffset = !isScaleBand
-          ? 0
-          : positionSign * (groupIndex === 0 ? 0 : tickSizeIncrement * groupIndex);
-        const tickYStart =
-          !isScaleBand || groupIndex === 0 ? 0 : positionSign * -1 * (tickSizeIncrement - tickSize);
-        const tickYSize = !isScaleBand
-          ? positionSign * ((groupIndex === 0 ? tickSize : tickSizeIncrement) * (groupIndex || 1))
-          : positionSign * tickSize;
-        const labelPositionY = !isScaleBand
-          ? positionSign *
-            ((groupIndex === 0 ? tickSize : tickSizeIncrement) * (groupIndex || 1) + TICK_LABEL_GAP)
-          : positionSign * yTickLabel;
+        const tickYSize =
+          positionSign * (groupIndex === 0 ? tickSize : tickSizeIncrement) * (groupIndex || 1);
+        const labelPositionY =
+          positionSign *
+          ((groupIndex === 0 ? tickSize : tickSizeIncrement) * (groupIndex || 1) + TICK_LABEL_GAP);
 
         return (
           <g
             key={index}
-            transform={`translate(${tickOffset}, ${yGroupOffset})`}
+            transform={`translate(${tickOffset}, 0)`}
             className={classes.tickContainer}
           >
-            {!disableTicks && showTick && (
-              <Tick
-                // The first group we "fill" the gap between first row and second row of ticks.
-                y1={tickYStart}
-                y2={tickYSize}
-                className={classes.tick}
-                {...slotProps?.axisTick}
-              />
+            {!disableTicks && !ignoreTick && showTick && (
+              <Tick y2={tickYSize} className={classes.tick} {...slotProps?.axisTick} />
             )}
 
-            {tickLabel !== undefined && showTickLabel && (
+            {tickLabel !== undefined && (
               <TickLabel
                 x={xTickLabel}
                 y={labelPositionY}
