@@ -14,12 +14,11 @@ export default function GroupedAxes() {
             defaultValue: 'band',
             options: ['band', 'point', 'time'],
           },
-          tickSize: { knob: 'slider', min: 0, max: 10, defaultValue: 6 },
-          tickSizeIncrement: {
+          tickSize: {
             knob: 'slider',
             min: 0,
-            max: 20,
-            defaultValue: 16,
+            max: 10,
+            defaultValue: 6,
           },
         } as const
       }
@@ -31,7 +30,7 @@ export default function GroupedAxes() {
                 data: time,
                 scaleType: props.scaleType,
                 tickSize: props.tickSize,
-                tickSizeIncrement: props.tickSizeIncrement,
+                height: 40,
                 getGrouping: (value: Date) => [
                   value.toLocaleDateString('en-US', { month: 'short' }),
                   formatQuarterYear(value),
@@ -51,7 +50,13 @@ export default function GroupedAxes() {
       getCode={({ props }) => `<LineChart
   // ...
   xAxis={{
-
+    getGrouping: (value: Date) => [
+      value.toLocaleDateString('en-US', { month: 'short' }),
+      formatQuarterYear(value),
+      value.toLocaleDateString('en-US', { year: 'numeric' }),
+    ],
+    scaleType: '${props.scaleType}',
+    tickSize: ${props.tickSize},
   }}
 />
 `}

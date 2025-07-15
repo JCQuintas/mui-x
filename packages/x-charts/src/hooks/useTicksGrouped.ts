@@ -157,7 +157,7 @@ function mapToGrouping(tickValues: any[], getGrouping: AxisConfig['getGrouping']
         if (isBandScale(scale)) {
           const count = arr.filter((v) => v.syncIndex === item.syncIndex).length;
           const labelOffset = scale.step() * count * (offsetRatio.middle - offsetRatio.extremities);
-          const lastIndex = acc.findIndex((v) => v.dataIndex === item.dataIndex);
+          const lastIndex = acc.findLastIndex((v) => v.dataIndex === item.dataIndex);
           if (lastIndex > -1) {
             acc[lastIndex].ignoreTick = true;
           }
