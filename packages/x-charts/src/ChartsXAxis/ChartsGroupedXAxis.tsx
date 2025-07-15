@@ -1,12 +1,10 @@
 'use client';
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import useSlotProps from '@mui/utils/useSlotProps';
 import { useThemeProps, useTheme } from '@mui/material/styles';
 import { useRtl } from '@mui/system/RtlProvider';
 import { useIsHydrated } from '../hooks/useIsHydrated';
 import { getStringSize } from '../internals/domUtils';
-import { useTicks, type TickItemType } from '../hooks/useTicks';
 import { ChartsXAxisProps } from '../models/axis';
 import { ChartsText, ChartsTextProps } from '../ChartsText';
 import { useMounted } from '../hooks/useMounted';
@@ -26,6 +24,7 @@ import {
   XAxisRoot,
   useUtilityClasses,
 } from './utilities';
+import { useTicksGrouped, type GroupedTickItemType } from '../hooks/useTicksGrouped';
 
 /**
  * Demos:
@@ -114,7 +113,7 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     ownerState: {},
   });
 
-  const xTicks = useTicks({
+  const xTicks = useTicksGrouped({
     scale: xScale,
     tickNumber,
     valueFormatter,
@@ -122,32 +121,8 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     tickPlacement,
     tickLabelPlacement,
     direction: 'x',
-  })
-    .map((item, index, arr) => ({
-      original: item,
-      grouping:
-        index !== arr.length - 1
-          ? (getGrouping?.(item.value, index) ?? [item.value])
-          : [item.value],
-    }))
-    .flatMap((grouped) => {
-      return grouped.grouping.map((groupValue, groupIndex) => {
-        return {
-          ...grouped.original,
-          value: groupValue,
-          formattedValue: groupValue === undefined ? groupValue : `${groupValue}`,
-          groupIndex,
-        } as TickItemType;
-      });
-    })
-    .sort((a, b) => (a.groupIndex ?? 0) - (b.groupIndex ?? 0))
-    // filter duplicates only if they are one after another
-    .filter((item, index, arr) => {
-      if (index === 0 || item.groupIndex !== arr[index - 1].groupIndex) {
-        return true;
-      }
-      return item.value !== arr[index - 1].value;
-    });
+    getGrouping,
+  });
 
   const groupedXTicks = xTicks.reduce((acc, item) => {
     if (!acc[item.groupIndex ?? 0]) {
@@ -155,7 +130,7 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     }
     acc[item.groupIndex ?? 0].push(item);
     return acc;
-  }, [] as TickItemType[][]);
+  }, [] as GroupedTickItemType[][]);
 
   const visibleLabels = new Set(
     groupedXTicks.reduce((acc, v) => {
@@ -170,7 +145,7 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
 
       acc.push(...set);
       return acc;
-    }, [] as TickItemType[]),
+    }, [] as GroupedTickItemType[]),
   );
 
   const axisLabelProps = useSlotProps({

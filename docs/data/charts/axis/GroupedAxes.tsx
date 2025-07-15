@@ -1,31 +1,47 @@
 import * as React from 'react';
-import { BarChart } from '@mui/x-charts/BarChart';
+import { LineChartPro } from '@mui/x-charts-pro/LineChartPro';
 
 export default function GroupedAxes() {
   return (
-    <BarChart
+    <LineChartPro
       xAxis={[
         {
-          scaleType: 'band',
           data: time,
           height: 40,
-          getGrouping: (value: Date) => [
-            value.toLocaleDateString('en-US', { month: 'short' }),
-            formatQuarterYear(value),
-            value.toLocaleDateString('en-US', { year: 'numeric' }),
-          ],
+          scaleType: 'time',
+          getGrouping: (value: any) => {
+            value = new Date(value);
+            return [
+              value.toLocaleDateString('en-US', { month: 'short' }),
+              formatQuarterYear(value),
+              value.toLocaleDateString('en-US', { year: 'numeric' }),
+            ];
+          },
           position: 'top',
+          valueFormatter: (v) =>
+            v?.toLocaleDateString('en-US', {
+              month: 'short',
+              year: 'numeric',
+            }),
         },
         {
-          scaleType: 'band',
           data: time,
           height: 40,
-          getGrouping: (value: Date) => [
-            value.toLocaleDateString('en-US', { month: 'short' }),
-            formatQuarterYear(value),
-            value.toLocaleDateString('en-US', { year: 'numeric' }),
-          ],
+          scaleType: 'time',
+          getGrouping: (value: any) => {
+            value = new Date(value);
+            return [
+              value.toLocaleDateString('en-US', { month: 'short' }),
+              formatQuarterYear(value),
+              value.toLocaleDateString('en-US', { year: 'numeric' }),
+            ];
+          },
           position: 'bottom',
+          valueFormatter: (v) =>
+            v?.toLocaleDateString('en-US', {
+              month: 'short',
+              year: 'numeric',
+            }),
         },
       ]}
       {...chartConfig}

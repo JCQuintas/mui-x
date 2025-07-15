@@ -62,7 +62,6 @@ export type TickItemType = {
   formattedValue?: string;
   offset: number;
   labelOffset: number;
-  groupIndex?: number;
 };
 
 export function useTicks(
