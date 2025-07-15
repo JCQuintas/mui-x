@@ -165,14 +165,14 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
   });
 
   const domain = xScale.domain();
-  const ordinalAxis = isBandScale(xScale);
+  const isScaleBand = isBandScale(xScale);
   // Skip axis rendering if no data is available
   // - The domain is an empty array for band/point scales.
   // - The domains contains Infinity for continuous scales.
   // - The position is set to 'none'.
   if (
-    (ordinalAxis && domain.length === 0) ||
-    (!ordinalAxis && domain.some(isInfinity)) ||
+    (isScaleBand && domain.length === 0) ||
+    (!isScaleBand && domain.some(isInfinity)) ||
     position === 'none'
   ) {
     return null;
@@ -221,36 +221,39 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
         const tickLabel = tickLabels.get(item);
         const showTickLabel = visibleLabels.has(item);
         const groupIndex = item.groupIndex ?? 0;
+        const yGroupOffset = !isScaleBand
+          ? 0
+          : positionSign * (groupIndex === 0 ? 0 : tickSizeIncrement * groupIndex);
+        const tickYStart =
+          !isScaleBand || groupIndex === 0 ? 0 : positionSign * -1 * (tickSizeIncrement - tickSize);
+        const tickYSize = !isScaleBand
+          ? positionSign * ((groupIndex === 0 ? tickSize : tickSizeIncrement) * (groupIndex || 1))
+          : positionSign * tickSize;
+        const labelPositionY = !isScaleBand
+          ? positionSign *
+            ((groupIndex === 0 ? tickSize : tickSizeIncrement) * (groupIndex || 1) + TICK_LABEL_GAP)
+          : positionSign * yTickLabel;
 
         return (
           <g
             key={index}
-            transform={`translate(${tickOffset}, ${
-              positionSign * (groupIndex === 0 ? 0 : tickSizeIncrement * groupIndex)
-            })`}
+            transform={`translate(${tickOffset}, ${yGroupOffset})`}
             className={classes.tickContainer}
           >
             {!disableTicks && showTick && (
               <Tick
                 // The first group we "fill" the gap between first row and second row of ticks.
-                y1={groupIndex === 0 ? 0 : positionSign * -1 * (tickSizeIncrement - tickSize)}
-                y2={positionSign * tickSize}
+                y1={tickYStart}
+                y2={tickYSize}
                 className={classes.tick}
                 {...slotProps?.axisTick}
               />
             )}
-            <line
-              {...slotProps?.axisTick}
-              y1={positionSign * tickSize}
-              y2={positionSign * yTickLabel}
-              strokeWidth={30}
-              // stroke={'black'}
-            />
 
             {tickLabel !== undefined && showTickLabel && (
               <TickLabel
                 x={xTickLabel}
-                y={positionSign * yTickLabel}
+                y={labelPositionY}
                 data-testid="ChartsXAxisTickLabel"
                 {...axisTickLabelProps}
                 text={tickLabel}

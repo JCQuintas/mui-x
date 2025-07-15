@@ -1,42 +1,21 @@
 import * as React from 'react';
-import { LineChartPro } from '@mui/x-charts-pro/LineChartPro';
+import { LineChart } from '@mui/x-charts/LineChart';
 
 export default function GroupedAxes() {
   return (
-    <LineChartPro
+    <LineChart
       xAxis={[
         {
           data: time,
-          height: 40,
-          scaleType: 'time',
+          tickSizeIncrement: 20,
+          scaleType: 'band',
           getGrouping: (value: any) => {
-            value = new Date(value);
             return [
               value.toLocaleDateString('en-US', { month: 'short' }),
               formatQuarterYear(value),
               value.toLocaleDateString('en-US', { year: 'numeric' }),
             ];
           },
-          position: 'top',
-          valueFormatter: (v) =>
-            v?.toLocaleDateString('en-US', {
-              month: 'short',
-              year: 'numeric',
-            }),
-        },
-        {
-          data: time,
-          height: 40,
-          scaleType: 'time',
-          getGrouping: (value: any) => {
-            value = new Date(value);
-            return [
-              value.toLocaleDateString('en-US', { month: 'short' }),
-              formatQuarterYear(value),
-              value.toLocaleDateString('en-US', { year: 'numeric' }),
-            ];
-          },
-          position: 'bottom',
           valueFormatter: (v) =>
             v?.toLocaleDateString('en-US', {
               month: 'short',
