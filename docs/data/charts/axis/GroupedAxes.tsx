@@ -1,29 +1,53 @@
 import * as React from 'react';
 import { LineChart } from '@mui/x-charts/LineChart';
+import { Box } from '@mui/system';
+import ChartsUsageDemo from '../../../src/modules/components/ChartsUsageDemo';
 
 export default function GroupedAxes() {
   return (
-    <LineChart
-      xAxis={[
+    <ChartsUsageDemo
+      componentName="Alert"
+      data={
         {
-          data: time,
-          tickSizeIncrement: 20,
-          scaleType: 'band',
-          getGrouping: (value: any) => {
-            return [
-              value.toLocaleDateString('en-US', { month: 'short' }),
-              formatQuarterYear(value),
-              value.toLocaleDateString('en-US', { year: 'numeric' }),
-            ];
+          scaleType: {
+            knob: 'radio',
+            defaultValue: 'band',
+            options: ['band', 'point', 'time'],
           },
-          valueFormatter: (v) =>
-            v?.toLocaleDateString('en-US', {
-              month: 'short',
-              year: 'numeric',
-            }),
-        },
-      ]}
-      {...chartConfig}
+          tickSize: { knob: 'slider', min: 0, max: 10, defaultValue: 6 },
+        } as const
+      }
+      renderDemo={(props) => (
+        <Box sx={{ width: '100%', marginBottom: 3 }}>
+          <LineChart
+            xAxis={[
+              {
+                data: time,
+                scaleType: props.scaleType,
+                tickSize: props.tickSize,
+                getGrouping: (value: Date) => [
+                  value.toLocaleDateString('en-US', { month: 'short' }),
+                  formatQuarterYear(value),
+                  value.toLocaleDateString('en-US', { year: 'numeric' }),
+                ],
+                valueFormatter: (v: Date) =>
+                  v.toLocaleDateString('en-US', {
+                    month: 'short',
+                    year: 'numeric',
+                  }),
+              },
+            ]}
+            {...chartConfig}
+          />
+        </Box>
+      )}
+      getCode={({ props }) => `<LineChart
+  // ...
+  xAxis={{
+
+  }}
+/>
+`}
     />
   );
 }
@@ -60,7 +84,8 @@ const getPercents = (array: number[]) =>
   array.map((v, index) => (100 * v) / (a[index] + b[index]));
 
 const chartConfig = {
-  height: 300,
+  height: 200,
+  margin: { left: 0 },
   series: [
     {
       data: getPercents(a),
