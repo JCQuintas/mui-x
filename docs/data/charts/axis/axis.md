@@ -216,11 +216,15 @@ If two or more axes share the same `position`, they are displayed in the order t
 
 {{"demo": "MultipleAxes.js"}}
 
-### Grouped Axes
+## Grouped Axes
 
-You can group axes together by rendering more than one axis on the same side.
+You can group axes together by providing a `getGrouping` function to the axis definition.
+This function receives the axis data value and should return an array of strings.
+The returned array will be used to group the ticks together.
 
 {{"demo": "GroupedAxes.js"}}
+
+{{"demo": "ContinuousGroupedAxes.js"}}
 
 ## Axis customization
 

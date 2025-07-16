@@ -68,6 +68,11 @@ export function useTicksGrouped(
           return entries;
         }
 
+        const maxGroupIndex = entries.reduce(
+          (max, entry) => Math.max(max, entry.groupIndex ?? 0),
+          -1,
+        );
+
         return [
           ...entries,
 
@@ -76,6 +81,7 @@ export function useTicksGrouped(
             formattedValue: undefined,
             offset: scale.range()[1],
             labelOffset: 0,
+            groupIndex: maxGroupIndex,
           },
         ];
       }
