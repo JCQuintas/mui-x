@@ -11,7 +11,9 @@ export default function ContinuousGroupedAxes() {
           height: 50,
           label: 'Mass to Low Earth Orbit (kg)',
           tickInterval: (v, index) => index % 3 === 0,
-          getGrouping: (value: number) => [`${value}kg`, getRockerClass(value)],
+          grouping: {
+            getGrouping: (value: number) => [value, getRockerClass(value)],
+          },
         },
       ]}
       {...chartConfig}

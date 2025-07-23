@@ -31,11 +31,13 @@ export default function GroupedAxes() {
                 scaleType: props.scaleType,
                 tickSize: props.tickSize,
                 height: 40,
-                getGrouping: (value: Date) => [
-                  value.toLocaleDateString('en-US', { month: 'short' }),
-                  formatQuarterYear(value),
-                  value.toLocaleDateString('en-US', { year: 'numeric' }),
-                ],
+                grouping: {
+                  getGrouping: (value: Date) => [
+                    value.toLocaleDateString('en-US', { month: 'short' }),
+                    formatQuarterYear(value),
+                    value.toLocaleDateString('en-US', { year: 'numeric' }),
+                  ],
+                },
                 valueFormatter: (v: Date) =>
                   v.toLocaleDateString('en-US', {
                     month: 'short',

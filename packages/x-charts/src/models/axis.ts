@@ -462,6 +462,20 @@ export type AxisConfig<
    */
   offset?: number;
   /**
+   * The configuration for the axis grouping.
+   */
+  grouping?: AxisGrouping<V>;
+} & CommonAxisConfig<S, V> &
+  Omit<Partial<AxisProps>, 'axisId'> &
+  Partial<Omit<AxisScaleConfig[S], 'scale'>> &
+  AxisSideConfig<AxisProps> &
+  TickParams &
+  AxisConfigExtension;
+
+export interface AxisConfigExtension {}
+
+export type AxisGrouping<V = any> = {
+  /**
    * The function used to create axis groups.
    *
    * For each value in the returned array, a group will be created.
@@ -481,31 +495,36 @@ export type AxisConfig<
    * @param {number} dataIndex  The index of the axis item in the `data` array.
    * @returns {Array<string | number | Date>} The array of values that will be used to group the axis items.
    */
-  getGrouping?: (value: V, dataIndex: number) => (string | number | Date)[];
+  getGrouping: (value: V, dataIndex: number) => (string | number | Date)[];
   /**
-   * The configuration for the axis grouping.
-   * Accepts a single object or an array of objects.
-   * If an array is provided, each group will use the corresponding object in the array.
+   * Each group will use the corresponding object in the array as its configuration.
    * A group is defined by the `getGrouping` function.
    * For example, if the `getGrouping` function returns `[31, "Jan", 2021]`, `[1, "Feb", 2021]`, `[2, "Feb", 2021]`,
    * the group with index 1 will be `["Jan", "Feb", "Feb"]`
    */
-  groupingConfig?: AxisGroupingConfig | AxisGroupingConfig[];
-} & CommonAxisConfig<S, V> &
-  Omit<Partial<AxisProps>, 'axisId'> &
-  Partial<Omit<AxisScaleConfig[S], 'scale'>> &
-  AxisSideConfig<AxisProps> &
-  TickParams &
-  AxisConfigExtension;
-
-export interface AxisConfigExtension {}
+  axes?: AxisGroupingConfig[];
+  /**
+   * Defines how the axis will be displayed.
+   * - `'isolated'`: Each group will be displayed in its own "row". This is the default for point and continuous scales.
+   * - `'combined'`: All groups will be displayed in a way that the ticks align with each other. This is the default for band scales.
+   */
+  mode?: 'isolated' | 'combined';
+} & AxisGroupingConfig;
 
 export type AxisGroupingConfig = {
   /**
-   * The number of pixels between two groups.
+   * The size of the tick in pixels.
    * @default 6
    */
   tickSize?: number;
+  /**
+   * The spacing between the chart and the axis.
+   *
+   * - `'auto'`: A value is calculated based on tick size, scale type and grouping mode, but may not be accurate.
+   *
+   * @default 'auto'
+   */
+  offset?: number | 'auto';
 };
 
 export type PolarAxisDefaultized<

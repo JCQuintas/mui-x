@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { useChartContext } from '../context/ChartProvider';
-import { AxisConfig, D3Scale } from '../models/axis';
+import { AxisConfig, D3Scale, type AxisGrouping, type AxisGroupingConfig } from '../models/axis';
 import { isBandScale } from '../internals/isBandScale';
 import { isInfinity } from '../internals/isInfinity';
 import type { TickItemType, TickParams } from './useTicks';
@@ -39,15 +39,23 @@ export type GroupedTickItemType = {
   syncIndex?: number;
 };
 
+export type GroupedTicksReturnType = {
+  labels: GroupedTickItemType[];
+  ticks: GroupedTickItemType[];
+  groupIndex: number;
+  offset: number;
+}[];
+
 export function useTicksGrouped(
   options: {
     scale: D3Scale;
     valueFormatter?: AxisConfig['valueFormatter'];
     direction: 'x' | 'y';
-    getGrouping: AxisConfig['getGrouping'];
+    getGrouping: AxisGrouping['getGrouping'];
+    getGroupConfig: (groupIndex: number) => AxisGroupingConfig;
   } & Pick<TickParams, 'tickNumber' | 'tickInterval' | 'tickPlacement' | 'tickLabelPlacement'>,
-): GroupedTickItemType[] {
-  const { scale, tickNumber, tickInterval, direction, getGrouping } = options;
+): { ticks: GroupedTickItemType[]; groupIndex: number; groupOffset: number }[] {
+  const { scale, tickNumber, tickInterval, direction, getGrouping, getGroupConfig } = options;
   const { instance } = useChartContext();
 
   return React.useMemo(() => {
@@ -61,29 +69,9 @@ export function useTicksGrouped(
           (typeof tickInterval === 'function' && domain.filter(tickInterval)) ||
           (typeof tickInterval === 'object' && tickInterval) ||
           domain;
-        const entries = mapToGrouping(filteredDomain, getGrouping, scale);
+        const entries = mapToGrouping(filteredDomain, getGrouping, scale, getGroupConfig);
 
-        if (entries.find((v) => v.offset === scale.range()[1])) {
-          // If the last tick is already at the end of the scale, we don't need to add a new one
-          return entries;
-        }
-
-        const maxGroupIndex = entries.reduce(
-          (max, entry) => Math.max(max, entry.groupIndex ?? 0),
-          -1,
-        );
-
-        return [
-          ...entries,
-
-          // Last tick
-          {
-            formattedValue: undefined,
-            offset: scale.range()[1],
-            labelOffset: 0,
-            groupIndex: maxGroupIndex,
-          },
-        ];
+        return entries;
       }
 
       // scale type = 'point'
@@ -92,7 +80,7 @@ export function useTicksGrouped(
         (typeof tickInterval === 'object' && tickInterval) ||
         domain;
 
-      return mapToGrouping(filteredDomain, getGrouping, scale);
+      return mapToGrouping(filteredDomain, getGrouping, scale, getGroupConfig);
     }
 
     const domain = scale.domain();
@@ -116,16 +104,21 @@ export function useTicksGrouped(
       }
     }
 
-    return mapToGrouping(visibleTicks, getGrouping, scale);
-  }, [scale, tickInterval, tickNumber, direction, instance, getGrouping]);
+    return mapToGrouping(visibleTicks, getGrouping, scale, getGroupConfig);
+  }, [scale, tickInterval, tickNumber, direction, instance, getGrouping, getGroupConfig]);
 }
 
-function mapToGrouping(tickValues: any[], getGrouping: AxisConfig['getGrouping'], scale: D3Scale) {
+function mapToGrouping(
+  tickValues: any[],
+  getGrouping: AxisGrouping['getGrouping'],
+  scale: D3Scale,
+  getGroupConfig: (groupIndex: number) => Omit<AxisGrouping, 'getGrouping' | 'axes'>,
+) {
   let syncIndex = -1;
   return tickValues
     .flatMap((value, i) => {
       // We only run ChartsGroupedXAxis if getGrouping is defined
-      return (getGrouping as Exclude<AxisConfig['getGrouping'], undefined>)(value, i).map(
+      return (getGrouping as AxisGrouping['getGrouping'])(value, i).map(
         (groupValue, groupIndex) => ({
           value: groupValue,
           formattedValue: `${groupValue}`,
@@ -179,5 +172,33 @@ function mapToGrouping(tickValues: any[], getGrouping: AxisConfig['getGrouping']
         }
       }
       return acc;
-    }, [] as GroupedTickItemType[]);
+    }, [] as GroupedTickItemType[])
+    .reduce(
+      (acc, item) => {
+        const groupIndex = item.groupIndex ?? 0;
+        const groupConfig = getGroupConfig(groupIndex);
+        const groupOffset = getGroupOffset(groupIndex, groupConfig);
+
+        if (!acc[groupIndex]) {
+          acc[groupIndex] = {
+            ticks: [],
+            groupIndex,
+            groupOffset,
+          };
+        }
+        acc[groupIndex].ticks.push(item);
+        return acc;
+      },
+      [] as { ticks: GroupedTickItemType[]; groupIndex: number; groupOffset: number }[],
+    );
+}
+
+function getGroupOffset(
+  groupIndex: number,
+  groupConfig: Omit<AxisGrouping, 'getGrouping' | 'axes'>,
+): number {
+  if (groupConfig.mode === 'combined') {
+    return 0;
+  }
+  return groupConfig?.offset === 'auto' ? 20 * groupIndex : (groupConfig?.offset ?? 0);
 }

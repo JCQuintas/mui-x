@@ -3,7 +3,7 @@ import * as React from 'react';
 import useSlotProps from '@mui/utils/useSlotProps';
 import { useThemeProps, useTheme } from '@mui/material/styles';
 import { useRtl } from '@mui/system/RtlProvider';
-import { ChartsXAxisProps, type AxisConfig, type AxisGroupingConfig } from '../models/axis';
+import { ChartsXAxisProps, type AxisGrouping } from '../models/axis';
 import { ChartsText, ChartsTextProps } from '../ChartsText';
 import { useDrawingArea } from '../hooks/useDrawingArea';
 import { isInfinity } from '../internals/isInfinity';
@@ -15,50 +15,16 @@ import { invertTextAnchor } from '../internals/invertTextAnchor';
 import { defaultProps, TICK_LABEL_GAP, XAxisRoot, useUtilityClasses } from './utilities';
 import { useTicksGrouped } from '../hooks/useTicksGrouped';
 
-const DEFAULT_GROUPING_CONFIG = {
+const DEFAULT_GROUPING_BAND: Omit<Required<AxisGrouping>, 'getGrouping' | 'axes'> = {
   tickSize: 6,
+  offset: 'auto',
+  mode: 'combined',
 };
 
-const calculateTickSize = (
-  groupingConfig: AxisGroupingConfig | undefined,
-  groupIndex: number,
-  tickSize: number | undefined,
-  isConfigArray: boolean = false,
-): number => {
-  // If the groupingConfig is an array we expect the user to provide a `tickSize` for each group.
-  if (isConfigArray) {
-    return groupingConfig?.tickSize ?? DEFAULT_GROUPING_CONFIG.tickSize;
-  }
-
-  // Else if it is an object, the provided `tickSize` applies to all groups incrementally.
-  const computedTickSize = groupingConfig?.tickSize ?? tickSize ?? DEFAULT_GROUPING_CONFIG.tickSize;
-
-  // If only the `tickSize` property is provided, we assume it applies to all groups.
-  // The first tick will be at `tickSize`, while every subsequent group will be
-  // multiplied by the group index times two and summed to the first tick size.
-  // This allows for a consistent spacing between groups.
-  return computedTickSize * groupIndex * 2 + computedTickSize;
-};
-
-const getGroupingConfig = (
-  groupingConfig: AxisConfig['groupingConfig'],
-  groupIndex: number,
-  tickSize: number | undefined,
-) => {
-  if (!groupingConfig) {
-    return {
-      tickSize: calculateTickSize(undefined, groupIndex, tickSize),
-    };
-  }
-
-  const isConfigArray = Array.isArray(groupingConfig);
-  const config = isConfigArray ? groupingConfig[groupIndex] : groupingConfig;
-
-  return {
-    ...DEFAULT_GROUPING_CONFIG,
-    ...config,
-    tickSize: calculateTickSize(config, groupIndex, tickSize, isConfigArray),
-  };
+const DEFAULT_GROUPING_OTHER: Omit<Required<AxisGrouping>, 'getGrouping' | 'axes'> = {
+  tickSize: 6,
+  offset: 10,
+  mode: 'isolated',
 };
 
 /**
@@ -93,8 +59,7 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     sx,
     offset,
     height: axisHeight,
-    getGrouping,
-    groupingConfig,
+    grouping: groupingConfig,
   } = defaultizedProps;
 
   const theme = useTheme();
@@ -117,6 +82,22 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
   const defaultDominantBaseline = getDefaultBaseline(
     (position === 'bottom' ? 0 : 180) - (tickLabelStyle?.angle ?? 0),
   );
+  const isScaleBand = isBandScale(xScale);
+
+  const getGroupConfig = React.useCallback(
+    (groupIndex: number) => {
+      const config = groupingConfig?.axes?.[groupIndex] ?? {};
+      const DEFAULTS = isScaleBand ? DEFAULT_GROUPING_BAND : DEFAULT_GROUPING_OTHER;
+
+      return {
+        ...DEFAULTS,
+        ...groupingConfig,
+        ...config,
+        tickSize: config?.tickSize ?? tickSize ?? DEFAULTS.tickSize,
+      };
+    },
+    [groupingConfig, tickSize, isScaleBand],
+  );
 
   const axisTickLabelProps = useSlotProps({
     elementType: TickLabel,
@@ -135,17 +116,6 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     ownerState: {},
   });
 
-  const xTicks = useTicksGrouped({
-    scale: xScale,
-    tickNumber,
-    valueFormatter,
-    tickInterval,
-    tickPlacement,
-    tickLabelPlacement,
-    direction: 'x',
-    getGrouping,
-  });
-
   const axisLabelProps = useSlotProps({
     elementType: Label,
     externalSlotProps: slotProps?.axisLabel,
@@ -162,8 +132,19 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     ownerState: {},
   });
 
+  const xTicks = useTicksGrouped({
+    scale: xScale,
+    tickNumber,
+    valueFormatter,
+    tickInterval,
+    tickPlacement,
+    tickLabelPlacement,
+    direction: 'x',
+    getGrouping: groupingConfig!.getGrouping,
+    getGroupConfig,
+  });
+
   const domain = xScale.domain();
-  const isScaleBand = isBandScale(xScale);
   // Skip axis rendering if no data is available
   // - The domain is an empty array for band/point scales.
   // - The domains contains Infinity for continuous scales.
@@ -181,8 +162,6 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
     y: positionSign * axisHeight,
   };
 
-  const tickLabels = new Map(Array.from(xTicks).map((item) => [item, item.formattedValue]));
-
   return (
     <XAxisRoot
       transform={`translate(0, ${position === 'bottom' ? top + height + offset : top - offset})`}
@@ -193,39 +172,55 @@ function ChartsGroupedXAxis(inProps: ChartsXAxisProps) {
         <Line x1={left} x2={left + width} className={classes.line} {...slotProps?.axisLine} />
       )}
 
-      {xTicks.map((item, index) => {
-        const { offset: tickOffset, labelOffset } = item;
-        const xTickLabel = labelOffset ?? 0;
-
-        const showTick = instance.isXInside(tickOffset);
-        const tickLabel = tickLabels.get(item);
-        const ignoreTick = item.ignoreTick ?? false;
-        const groupIndex = item.groupIndex ?? 0;
-        const groupConfig = getGroupingConfig(groupingConfig, groupIndex, tickSize);
-
-        const tickYSize = positionSign * groupConfig.tickSize;
-        const labelPositionY = positionSign * (groupConfig.tickSize + TICK_LABEL_GAP);
-
+      {xTicks.map((group) => {
         return (
           <g
-            key={index}
-            transform={`translate(${tickOffset}, 0)`}
-            className={classes.tickContainer}
-            data-group-index={groupIndex}
+            transform={`translate(0, ${positionSign * group.groupOffset})`}
+            data-group-index={group.groupIndex}
+            key={group.groupIndex}
           >
-            {!disableTicks && !ignoreTick && showTick && (
-              <Tick y2={tickYSize} className={classes.tick} {...slotProps?.axisTick} />
-            )}
+            {group.ticks.map((item, index) => {
+              const { offset: tickOffset, labelOffset } = item;
+              const xTickLabel = labelOffset ?? 0;
 
-            {tickLabel !== undefined && (
-              <TickLabel
-                x={xTickLabel}
-                y={labelPositionY}
-                data-testid="ChartsXAxisTickLabel"
-                {...axisTickLabelProps}
-                text={tickLabel}
-              />
-            )}
+              const showTick = instance.isXInside(tickOffset);
+              const tickLabel = item.formattedValue;
+              const ignoreTick = item.ignoreTick ?? false;
+              const groupIndex = item.groupIndex ?? 0;
+              const groupConfig = getGroupConfig(groupIndex);
+
+              const tickYSize = positionSign * groupConfig.tickSize;
+              const labelPositionY = positionSign * (groupConfig.tickSize + TICK_LABEL_GAP);
+
+              return (
+                <g
+                  key={index}
+                  transform={`translate(${tickOffset}, 0)`}
+                  className={classes.tickContainer}
+                >
+                  {!disableTicks && !ignoreTick && showTick && (
+                    <Tick y2={tickYSize} className={classes.tick} {...slotProps?.axisTick} />
+                  )}
+
+                  {tickLabel !== undefined && (
+                    <TickLabel
+                      x={xTickLabel}
+                      y={labelPositionY}
+                      data-testid="ChartsXAxisTickLabel"
+                      {...axisTickLabelProps}
+                      style={{
+                        ...axisTickLabelProps.style,
+                        dominantBaseline:
+                          groupIndex === 0
+                            ? axisTickLabelProps?.style?.dominantBaseline
+                            : 'central',
+                      }}
+                      text={tickLabel}
+                    />
+                  )}
+                </g>
+              );
+            })}
           </g>
         );
       })}
