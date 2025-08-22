@@ -48,6 +48,32 @@ type AllKeys = AllMeta | AllLetters | AllNumbers;
 export class KeyboardManager {
   private pressedKeys: Set<KeyboardKey> = new Set();
 
+  // Static properties to manage global event handlers
+  private static instance: KeyboardManager | null = null;
+
+  private static referenceCount: number = 0;
+
+  private static eventHandlersAttached: boolean = false;
+
+  // Instance methods that can be safely bound and shared
+  private static handleKeyDown = (event: KeyboardEvent): void => {
+    if (KeyboardManager.instance) {
+      KeyboardManager.instance.pressedKeys.add(event.key);
+    }
+  };
+
+  private static handleKeyUp = (event: KeyboardEvent): void => {
+    if (KeyboardManager.instance) {
+      KeyboardManager.instance.pressedKeys.delete(event.key);
+    }
+  };
+
+  private static clearKeys = (): void => {
+    if (KeyboardManager.instance) {
+      KeyboardManager.instance.pressedKeys.clear();
+    }
+  };
+
   /**
    * Create a new KeyboardManager instance
    */
@@ -56,40 +82,32 @@ export class KeyboardManager {
   }
 
   /**
-   * Initialize the keyboard event listeners
+   * Initialize the keyboard event listeners with reference counting
    */
   private initialize(): void {
     if (typeof window === 'undefined') {
       return;
     }
 
-    // Add keyboard event listeners
-    window.addEventListener('keydown', this.handleKeyDown);
-    window.addEventListener('keyup', this.handleKeyUp);
-    // Reset keys when window loses focus
-    window.addEventListener('blur', this.clearKeys);
+    // Increment reference count
+    KeyboardManager.referenceCount += 1;
+
+    // Set this as the global instance (all instances will share the same pressed keys)
+    if (!KeyboardManager.instance) {
+      KeyboardManager.instance = this;
+    } else {
+      // Share the same pressed keys set with the global instance
+      this.pressedKeys = KeyboardManager.instance.pressedKeys;
+    }
+
+    // Only attach event listeners once
+    if (!KeyboardManager.eventHandlersAttached) {
+      window.addEventListener('keydown', KeyboardManager.handleKeyDown);
+      window.addEventListener('keyup', KeyboardManager.handleKeyUp);
+      window.addEventListener('blur', KeyboardManager.clearKeys);
+      KeyboardManager.eventHandlersAttached = true;
+    }
   }
-
-  /**
-   * Handle keydown events
-   */
-  private handleKeyDown = (event: KeyboardEvent): void => {
-    this.pressedKeys.add(event.key);
-  };
-
-  /**
-   * Handle keyup events
-   */
-  private handleKeyUp = (event: KeyboardEvent): void => {
-    this.pressedKeys.delete(event.key);
-  };
-
-  /**
-   * Clear all pressed keys
-   */
-  private clearKeys = (): void => {
-    this.pressedKeys.clear();
-  };
 
   /**
    * Check if a set of keys are all currently pressed
@@ -110,14 +128,32 @@ export class KeyboardManager {
   }
 
   /**
-   * Cleanup method to remove event listeners
+   * Cleanup method to remove event listeners using reference counting
    */
   public destroy(): void {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('keydown', this.handleKeyDown);
-      window.removeEventListener('keyup', this.handleKeyUp);
-      window.removeEventListener('blur', this.clearKeys);
+    if (typeof window === 'undefined') {
+      return;
     }
-    this.clearKeys();
+
+    // Decrement reference count
+    KeyboardManager.referenceCount -= 1;
+
+    // Only remove event listeners when no more instances exist
+    if (KeyboardManager.referenceCount <= 0) {
+      if (KeyboardManager.eventHandlersAttached) {
+        window.removeEventListener('keydown', KeyboardManager.handleKeyDown);
+        window.removeEventListener('keyup', KeyboardManager.handleKeyUp);
+        window.removeEventListener('blur', KeyboardManager.clearKeys);
+        KeyboardManager.eventHandlersAttached = false;
+      }
+
+      // Clear pressed keys and reset global state
+      if (KeyboardManager.instance) {
+        KeyboardManager.instance.pressedKeys.clear();
+        KeyboardManager.instance = null;
+      }
+
+      KeyboardManager.referenceCount = 0;
+    }
   }
 }

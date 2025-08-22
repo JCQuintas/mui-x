@@ -126,22 +126,14 @@ export class MoveGesture<GestureName extends string> extends PointerGesture<Gest
   ): void {
     super.init(element, pointerManager, gestureRegistry, keyboardManager);
 
-    // Add event listeners for entering and leaving elements
-    // These are different from pointer events handled by PointerManager
-    // @ts-expect-error, PointerEvent is correct.
-    this.element.addEventListener('pointerenter', this.handleElementEnterBound);
-    // @ts-expect-error, PointerEvent is correct.
-    this.element.addEventListener('pointerleave', this.handleElementLeaveBound);
+    // Add event listeners for entering and leaving elements using safe handler methods
+    this.addEventHandler(this.element, 'pointerenter', this.handleElementEnterBound as EventListener);
+    this.addEventHandler(this.element, 'pointerleave', this.handleElementLeaveBound as EventListener);
   }
 
   public destroy(): void {
-    // Remove event listeners using the same function references
-    // @ts-expect-error, PointerEvent is correct.
-    this.element.removeEventListener('pointerenter', this.handleElementEnterBound);
-    // @ts-expect-error, PointerEvent is correct.
-    this.element.removeEventListener('pointerleave', this.handleElementLeaveBound);
     this.resetState();
-    super.destroy();
+    super.destroy(); // This will handle all event handler cleanup via removeAllEventHandlers()
   }
 
   protected updateOptions(options: typeof this.mutableOptionsType): void {

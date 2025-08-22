@@ -5,7 +5,6 @@
 import { ActiveGesturesRegistry } from './ActiveGesturesRegistry';
 import { KeyboardKey, KeyboardManager } from './KeyboardManager';
 import { PointerData, PointerManager } from './PointerManager';
-import { CustomEventListener } from './types/CustomEventListener';
 import { TargetElement } from './types/TargetElement';
 import { eventList } from './utils/eventList';
 
@@ -107,6 +106,17 @@ export type GestureState = {
 };
 
 /**
+ * Information about an event listener and its handlers
+ */
+type EventListenerInfo = {
+  element: TargetElement;
+  eventType: string;
+  listener: EventListener;
+  handlers: Set<EventListener>;
+  options?: boolean | AddEventListenerOptions;
+};
+
+/**
  * Base abstract class for all gestures. This class provides the fundamental structure
  * and functionality for handling gestures, including registering and unregistering
  * gesture handlers, creating emitters, and managing gesture state.
@@ -183,6 +193,12 @@ export abstract class Gesture<GestureName extends string> {
   /** The DOM element this gesture is attached to */
   protected element!: TargetElement;
 
+  /**
+   * Registry of event handlers attached by this gesture
+   * Maps event type to listener information for proper cleanup
+   */
+  private eventHandlerRegistry: Map<string, EventListenerInfo> = new Map();
+
   /** Stores the active gesture state */
   protected abstract state: GestureState;
 
@@ -240,16 +256,109 @@ export abstract class Gesture<GestureName extends string> {
     this.keyboardManager = keyboardManager;
 
     const changeOptionsEventName = `${this.name}ChangeOptions`;
-    (this.element as CustomEventListener).addEventListener(
+    this.addEventHandler(
+      this.element,
       changeOptionsEventName,
-      this.handleOptionsChange.bind(this),
+      this.handleOptionsChange.bind(this) as EventListener,
     );
 
     const changeStateEventName = `${this.name}ChangeState`;
-    (this.element as CustomEventListener).addEventListener(
+    this.addEventHandler(
+      this.element,
       changeStateEventName,
-      this.handleStateChange.bind(this),
+      this.handleStateChange.bind(this) as EventListener,
     );
+  }
+
+  /**
+   * Add an event handler to an element, supporting multiple handlers per event type
+   *
+   * @param element - The element to add the event handler to
+   * @param eventType - The type of event to listen for
+   * @param handler - The event handler function
+   * @param options - Optional event listener options
+   */
+  protected addEventHandler(
+    element: TargetElement,
+    eventType: string,
+    handler: EventListener,
+    options?: boolean | AddEventListenerOptions,
+  ): void {
+    let listenerInfo = this.eventHandlerRegistry.get(eventType);
+
+    if (!listenerInfo) {
+      // Create a new listener that calls all handlers
+      const handlers = new Set<EventListener>();
+      const listener: EventListener = (event) => {
+        // Call all handlers for this event type
+        handlers.forEach((h) => h(event));
+      };
+
+      listenerInfo = {
+        element,
+        eventType,
+        listener,
+        handlers,
+        options,
+      };
+
+      this.eventHandlerRegistry.set(eventType, listenerInfo);
+
+      // Add the listener to the DOM
+      element.addEventListener(eventType, listener, options);
+    }
+
+    // Add this handler to the set
+    listenerInfo.handlers.add(handler);
+  }
+
+  /**
+   * Remove a specific event handler by event type and handler function
+   *
+   * @param eventType - The type of event to stop listening for
+   * @param handler - The specific handler function to remove (optional, removes all if not provided)
+   */
+  protected removeEventHandler(eventType: string, handler?: EventListener): void {
+    const listenerInfo = this.eventHandlerRegistry.get(eventType);
+
+    if (listenerInfo) {
+      if (handler) {
+        // Remove specific handler
+        listenerInfo.handlers.delete(handler);
+
+        // If no handlers left, remove the entire event listener
+        if (listenerInfo.handlers.size === 0) {
+          listenerInfo.element.removeEventListener(
+            listenerInfo.eventType,
+            listenerInfo.listener,
+            listenerInfo.options,
+          );
+          this.eventHandlerRegistry.delete(eventType);
+        }
+      } else {
+        // Remove all handlers for this event type
+        listenerInfo.element.removeEventListener(
+          listenerInfo.eventType,
+          listenerInfo.listener,
+          listenerInfo.options,
+        );
+        this.eventHandlerRegistry.delete(eventType);
+      }
+    }
+  }
+
+  /**
+   * Remove all event handlers managed by this gesture
+   */
+  protected removeAllEventHandlers(): void {
+    for (const [, listenerInfo] of this.eventHandlerRegistry) {
+      listenerInfo.element.removeEventListener(
+        listenerInfo.eventType,
+        listenerInfo.listener,
+        listenerInfo.options,
+      );
+    }
+    this.eventHandlerRegistry.clear();
   }
 
   /**
@@ -380,17 +489,7 @@ export abstract class Gesture<GestureName extends string> {
    * Call this method when the gesture is no longer needed to prevent memory leaks
    */
   public destroy(): void {
-    const changeOptionsEventName = `${this.name}ChangeOptions`;
-    (this.element as CustomEventListener).removeEventListener(
-      changeOptionsEventName,
-      this.handleOptionsChange.bind(this),
-    );
-
-    const changeStateEventName = `${this.name}ChangeState`;
-    (this.element as CustomEventListener).removeEventListener(
-      changeStateEventName,
-      this.handleStateChange.bind(this),
-    );
+    this.removeAllEventHandlers();
   }
 
   /**

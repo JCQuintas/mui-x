@@ -123,13 +123,41 @@ export class PointerManager {
   private gestureHandlers: Set<(pointers: Map<number, PointerData>, event: PointerEvent) => void> =
     new Set();
 
+  // Track all PointerManager instances per root element
+  private static allInstancesPerRoot: Map<HTMLElement, Set<PointerManager>> = new Map();
+
   public constructor(options: PointerManagerOptions) {
     this.root = (options.root ?? document.getRootNode({ composed: true })) as HTMLElement;
     this.touchAction = options.touchAction || 'auto';
     this.passive = options.passive ?? false;
     this.preventEventInterruption = options.preventEventInterruption ?? false;
 
-    this.setupEventListeners();
+    this.initializeWithReferenceCount();
+  }
+
+  /**
+   * Initialize the PointerManager, preventing duplicate handlers for the same root element
+   */
+  private initializeWithReferenceCount(): void {
+    // Track this instance
+    if (!PointerManager.allInstancesPerRoot.has(this.root)) {
+      PointerManager.allInstancesPerRoot.set(this.root, new Set());
+    }
+    const instances = PointerManager.allInstancesPerRoot.get(this.root)!;
+    const wasEmpty = instances.size === 0;
+    instances.add(this);
+
+    // If this is the first PointerManager for this root element, set up event listeners
+    if (wasEmpty) {
+      this.setupEventListeners();
+    } else {
+      // If there's already a PointerManager for this root, share the pointer state
+      // Get the first (primary) manager from the set
+      const primaryManager = instances.values().next().value;
+      if (primaryManager && primaryManager !== this) {
+        this.pointers = primaryManager.pointers; // Share the same pointer map
+      }
+    }
   }
 
   /**
@@ -272,13 +300,19 @@ export class PointerManager {
 
   /**
    * Notify all registered gesture handlers about a pointer event.
-   *
-   * Each handler receives the current map of active pointers and the original event.
+   * If multiple PointerManager instances exist for the same root, notify all of them.
    *
    * @param event - The original pointer event that triggered this notification
    */
   private notifyHandlers(event: PointerEvent): void {
-    this.gestureHandlers.forEach((handler) => handler(this.pointers, event));
+    // Get all PointerManager instances for this root element
+    const allInstances = PointerManager.allInstancesPerRoot.get(this.root);
+    if (allInstances) {
+      // Notify all gesture handlers from all PointerManager instances for this root
+      allInstances.forEach((instance) => {
+        instance.gestureHandlers.forEach((handler) => handler(this.pointers, event));
+      });
+    }
   }
 
   /**
@@ -290,7 +324,6 @@ export class PointerManager {
    * @param event - The original browser pointer event
    * @returns A new PointerData object representing this pointer
    */
-  // eslint-disable-next-line class-methods-use-this
   private createPointerData(event: PointerEvent): PointerData {
     return {
       pointerId: event.pointerId,
@@ -314,20 +347,34 @@ export class PointerManager {
    * Clean up all event listeners and reset the PointerManager state.
    *
    * This method should be called when the PointerManager is no longer needed
-   * to prevent memory leaks. It removes all event listeners, clears the
-   * internal state, and resets the singleton instance.
+   * to prevent memory leaks. It removes all event listeners when all instances
+   * for the same root are destroyed, and clears the internal state.
    */
   public destroy(): void {
-    this.root.removeEventListener('pointerdown', this.handlePointerEvent);
-    this.root.removeEventListener('pointermove', this.handlePointerEvent);
-    this.root.removeEventListener('pointerup', this.handlePointerEvent);
-    this.root.removeEventListener('pointercancel', this.handlePointerEvent);
-    // @ts-expect-error, forceCancel is not a standard event, but used for custom handling
-    this.root.removeEventListener('forceCancel', this.handlePointerEvent);
-    this.root.removeEventListener('blur', this.handleInterruptEvents);
-    this.root.removeEventListener('contextmenu', this.handleInterruptEvents);
+    // Remove this instance from the tracking set
+    const allInstances = PointerManager.allInstancesPerRoot.get(this.root);
+    if (allInstances) {
+      allInstances.delete(this);
 
-    this.pointers.clear();
+      // If this was the last instance for this root, remove event listeners
+      if (allInstances.size === 0) {
+        // This is the last PointerManager for this root, remove event listeners
+        this.root.removeEventListener('pointerdown', this.handlePointerEvent);
+        this.root.removeEventListener('pointermove', this.handlePointerEvent);
+        this.root.removeEventListener('pointerup', this.handlePointerEvent);
+        this.root.removeEventListener('pointercancel', this.handlePointerEvent);
+        // @ts-expect-error, forceCancel is not a standard event, but used for custom handling
+        this.root.removeEventListener('forceCancel', this.handlePointerEvent);
+        this.root.removeEventListener('blur', this.handleInterruptEvents);
+        this.root.removeEventListener('contextmenu', this.handleInterruptEvents);
+
+        // Clean up registry
+        PointerManager.allInstancesPerRoot.delete(this.root);
+
+        this.pointers.clear();
+      }
+    }
+
     this.gestureHandlers.clear();
   }
 }
