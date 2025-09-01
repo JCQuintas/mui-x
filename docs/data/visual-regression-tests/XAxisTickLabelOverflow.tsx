@@ -2,7 +2,7 @@ import * as React from 'react';
 import { BarChartPro } from '@mui/x-charts-pro/BarChartPro';
 import { BarChartProps } from '@mui/x-charts/BarChart';
 import { useDrawingArea, useXAxes } from '@mui/x-charts/hooks';
-import { usAirportPassengersData } from './airportData';
+import { usAirportPassengersData } from 'docsx/data/visual-regression-tests/airportData';
 
 const defaultXAxis = {
   dataKey: 'code',
@@ -61,26 +61,7 @@ export default function XAxisTickLabelOverflow() {
   );
 }
 
-const colors = [
-  '#FF3A2E', // Bright red
-  '#9C27B0', // Purple
-  '#7FDBFF', // Light blue
-  '#2958B2', // Deep blue
-  '#0F1D3A', // Dark navy
-  '#00CCAA', // Teal
-  '#8B008B', // Dark magenta
-  '#FFD700', // Gold
-  '#9932CC', // Dark orchid
-  '#556B2F', // Dark olive green
-  '#20B2AA', // Light sea green
-  '#FF1493', // Deep pink
-  '#FF0099', // Hot pink
-  '#8A2BE2', // Blue violet
-  '#FF6B1A', // Deep orange
-  '#66CC00', // Lime green
-  '#3D5A1A', // Forest green
-  '#8C4A00', // Brown
-];
+const colors = ['black', 'white'];
 
 function AxisSizeVisualization() {
   const { left, top, height, width } = useDrawingArea();
@@ -108,8 +89,8 @@ function AxisSizeVisualization() {
             y={start}
             width={width}
             height={xAxis.height ?? 0}
-            fill={colors[i]}
-            opacity={0.2}
+            fill={colors[(i + (xAxis.position === 'top' ? 1 : 0)) % colors.length]}
+            opacity={0.1}
           />
         );
       })}
