@@ -6,6 +6,7 @@ import {
   PanGesture,
   PinchGesture,
   PressGesture,
+  PressAndDragGesture,
   TapGesture,
   TurnWheelGesture,
 } from '@mui/x-internal-gestures/core';
@@ -58,10 +59,19 @@ export const useChartInteractionListener: ChartPlugin<UseChartInteractionListene
           duration: 50,
           maxDistance: 10,
         }),
+        new PressAndDragGesture({
+          name: 'pressAndDrag',
+          pressDuration: 300,
+          pressMaxDistance: 10,
+          dragThreshold: 5,
+        }),
       ],
     });
 
-    gestureManager.registerElement(['pan', 'move', 'pinch', 'turnWheel', 'tap', 'quickPress'], svg);
+    gestureManager.registerElement(
+      ['pan', 'move', 'pinch', 'turnWheel', 'tap', 'quickPress', 'tapAndDrag', 'pressAndDrag'],
+      svg,
+    );
 
     return () => {
       // Cleanup gesture manager
