@@ -58,6 +58,11 @@ export type AddInteractionListener = {
     options?: boolean | AddEventListenerOptions,
   ): InteractionListenerResult;
   <CustomData extends Record<string, unknown> = Record<string, unknown>>(
+    interaction: 'zoomTap',
+    callback: (event: TapEvent<CustomData>) => void,
+    options?: boolean | AddEventListenerOptions,
+  ): InteractionListenerResult;
+  <CustomData extends Record<string, unknown> = Record<string, unknown>>(
     interaction: 'quickPress' | 'quickPressEnd',
     callback: (event: PressEvent<CustomData>) => void,
     options?: boolean | AddEventListenerOptions,

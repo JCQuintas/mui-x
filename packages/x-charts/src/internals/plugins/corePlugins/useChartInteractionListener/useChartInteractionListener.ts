@@ -37,6 +37,7 @@ export const useChartInteractionListener: ChartPlugin<UseChartInteractionListene
     | TurnWheelGesture<'zoomTurnWheel'>
     | TapGesture<'tap'>
     | PressGesture<'quickPress'>
+    | TapGesture<'zoomTap'>
   > | null>(null);
 
   React.useEffect(() => {
@@ -76,6 +77,11 @@ export const useChartInteractionListener: ChartPlugin<UseChartInteractionListene
             maxDistance: 10,
             preventIf: ['pan', 'zoomPan', 'zoomPinch'],
           }),
+          new TapGesture({
+            name: 'zoomTap' as const,
+            maxDistance: 10,
+            preventIf: ['pan', 'zoomPan', 'zoomPinch'],
+          }),
           new PressGesture({
             name: 'quickPress' as const,
             duration: 50,
@@ -93,7 +99,7 @@ export const useChartInteractionListener: ChartPlugin<UseChartInteractionListene
     }
 
     gestureManager.registerElement(
-      ['pan', 'move', 'zoomPinch', 'zoomPan', 'zoomTurnWheel', 'tap', 'quickPress'],
+      ['pan', 'move', 'zoomPinch', 'zoomPan', 'zoomTurnWheel', 'zoomTap', 'tap', 'quickPress'],
       svg,
     );
 
