@@ -362,4 +362,91 @@ describe.skipIf(isJSDOM)('ZoomInteractionConfig Keys and Modes', () => {
       expect(getAxisTickValues('x').length).to.be.lessThan(4);
     });
   });
+
+  describe('Pan with pointer configuration', () => {
+    it('should require minimum pointers for drag pan', async () => {
+      const onZoomChange = sinon.spy();
+      const { user } = render(
+        <BarChartPro
+          {...barChartProps}
+          initialZoom={[{ axisId: 'x', start: 75, end: 100 }]}
+          onZoomChange={onZoomChange}
+          zoomInteractionConfig={{
+            pan: [
+              {
+                type: 'drag',
+                minPointers: 2,
+              },
+            ],
+          }}
+        />,
+        options,
+      );
+
+      expect(getAxisTickValues('x')).to.deep.equal(['D']);
+
+      const svg = document.querySelector('svg')!;
+
+      // Single touch drag - should not pan (requires 2 pointers)
+      await user.pointer([
+        {
+          keys: '[TouchA>]',
+          target: svg,
+          coords: { x: 15, y: 20 },
+        },
+        {
+          pointerName: 'TouchA',
+          target: svg,
+          coords: { x: 90, y: 20 },
+        },
+        {
+          keys: '[/TouchA]',
+          target: svg,
+          coords: { x: 90, y: 20 },
+        },
+      ]);
+      await act(async () => new Promise((r) => requestAnimationFrame(r)));
+
+      expect(onZoomChange.callCount).to.equal(0);
+      expect(getAxisTickValues('x')).to.deep.equal(['D']);
+
+      // Two-finger touch drag - should pan
+      await user.pointer([
+        {
+          keys: '[TouchA>]',
+          target: svg,
+          coords: { x: 15, y: 20 },
+        },
+        {
+          keys: '[TouchB>]',
+          target: svg,
+          coords: { x: 25, y: 30 },
+        },
+        {
+          pointerName: 'TouchA',
+          target: svg,
+          coords: { x: 90, y: 20 },
+        },
+        {
+          pointerName: 'TouchB',
+          target: svg,
+          coords: { x: 100, y: 30 },
+        },
+        {
+          keys: '[/TouchA]',
+          target: svg,
+          coords: { x: 90, y: 20 },
+        },
+        {
+          keys: '[/TouchB]',
+          target: svg,
+          coords: { x: 100, y: 30 },
+        },
+      ]);
+      await act(async () => new Promise((r) => requestAnimationFrame(r)));
+
+      expect(onZoomChange.callCount).to.be.greaterThan(0);
+      expect(getAxisTickValues('x')).to.deep.equal(['C']);
+    });
+  });
 });

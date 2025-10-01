@@ -54,6 +54,7 @@ function initializeFor<T extends 'zoom' | 'pan'>(
         type,
         pointerMode: interaction.pointerMode,
         requiredKeys: interaction.requiredKeys,
+        minPointers: 'minPointers' in interaction ? interaction.minPointers : undefined,
       });
       return acc;
     },
@@ -69,22 +70,36 @@ function initializeFor<T extends 'zoom' | 'pan'>(
     const lastMouse = config.findLast((item) => item.pointerMode === 'mouse');
     const lastTouch = config.findLast((item) => item.pointerMode === 'touch');
 
+    // Handle mouse configuration
+    let mouseConfig: any = {};
+    if (lastMouse) {
+      mouseConfig = {
+        requiredKeys: lastMouse.requiredKeys ?? [],
+      };
+    }
+
+    // Handle touch configuration
+    let touchConfig: any = {};
+    if (lastTouch) {
+      touchConfig = {
+        requiredKeys: lastTouch.requiredKeys ?? [],
+      };
+
+      // Specific touch has precedence over generic
+    }
+
+    if (type === 'drag' && (lastTouch?.minPointers || lastEmpty?.minPointers)) {
+      touchConfig.minPointers = lastTouch?.minPointers ?? lastEmpty?.minPointers;
+    }
+
     acc[type] = {
       type,
       pointerMode: lastEmpty
         ? []
         : Array.from(new Set(config.filter((c) => c.pointerMode).map((c) => c.pointerMode!))),
       requiredKeys: lastEmpty?.requiredKeys ?? [],
-      mouse: lastMouse
-        ? {
-            requiredKeys: lastMouse?.requiredKeys ?? [],
-          }
-        : {},
-      touch: lastTouch
-        ? {
-            requiredKeys: lastTouch?.requiredKeys ?? [],
-          }
-        : {},
+      mouse: mouseConfig,
+      touch: touchConfig,
     };
   }
   return acc;

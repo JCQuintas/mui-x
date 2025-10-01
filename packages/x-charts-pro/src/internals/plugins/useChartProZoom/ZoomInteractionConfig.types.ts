@@ -22,7 +22,7 @@ export type ZoomInteractionConfig = {
 type Entry<T extends AnyInteraction> = {
   [K in T['type']]?: Omit<T, 'pointerMode'> & {
     mouse: { requiredKeys?: KeyboardKey[] };
-    touch: { requiredKeys?: KeyboardKey[] };
+    touch: { requiredKeys?: KeyboardKey[]; minPointers?: number };
     pointerMode?: PointerMode[];
   };
 };
@@ -90,6 +90,7 @@ export type PinchInteraction = Unpack<
 export type DragInteraction = Unpack<
   {
     type: 'drag';
+    minPointers?: number;
   } & AllModeProp &
     AllKeysProp
 >;
@@ -105,9 +106,10 @@ export type AnyInteraction = {
   type: string;
   pointerMode?: InteractionMode;
   requiredKeys?: KeyboardKey[];
+  minPointers?: number;
 };
 export type AnyEntry = Omit<AnyInteraction, 'pointerMode'> & {
   mouse: { requiredKeys?: KeyboardKey[] };
-  touch: { requiredKeys?: KeyboardKey[] };
+  touch: { requiredKeys?: KeyboardKey[]; minPointers?: number };
   pointerMode?: PointerMode[];
 };

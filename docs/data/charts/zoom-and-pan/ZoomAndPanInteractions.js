@@ -22,8 +22,9 @@ const knobs = {
   // Pan interactions
   drag: {
     displayName: 'Drag',
-    knob: 'switch',
-    defaultValue: true,
+    knob: 'select',
+    options: ['Default', 'Double drag', 'None'],
+    defaultValue: 'Default',
   },
 };
 
@@ -47,8 +48,14 @@ export default function ZoomAndPanInteractions() {
 
         // Build pan interactions array
         const panInteractions = [];
-        if (props.drag) {
+        if (props.drag === 'Default') {
           panInteractions.push('drag');
+        }
+        if (props.drag === 'Double drag') {
+          panInteractions.push({
+            type: 'drag',
+            minPointers: 2,
+          });
         }
 
         const zoomInteractionConfig = {
@@ -93,25 +100,32 @@ export default function ZoomAndPanInteractions() {
 
         // Build pan interactions array
         const panInteractions = [];
-        if (props.drag) {
+        if (props.drag === 'Default') {
           panInteractions.push('drag');
         }
+        if (props.drag === 'Double drag') {
+          panInteractions.push({
+            type: 'drag',
+            minPointers: 2,
+          });
+        }
 
-        const zoomConfig =
-          zoomInteractions.length > 0
-            ? `["${zoomInteractions.join('", "')}"]`
-            : '[]';
-        const panConfig =
-          panInteractions.length > 0 ? `["${panInteractions.join('", "')}"]` : '[]';
+        const zoomConfig = JSON.stringify(
+          {
+            zoom: zoomInteractions,
+            pan: panInteractions,
+          },
+          null,
+          2,
+        )
+          .replaceAll('\n ', '\n   ')
+          .replace(/}$/, '  }');
 
         return `import { ScatterChartPro } from '@mui/x-charts-pro/ScatterChartPro';
 
 <ScatterChartPro
   // ...
-  zoomInteractionConfig={{
-    zoom: ${zoomConfig},
-    pan: ${panConfig},
-  }}
+  zoomInteractionConfig={${zoomConfig}}
 />`;
       }}
     />
