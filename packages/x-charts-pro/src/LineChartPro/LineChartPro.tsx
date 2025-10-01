@@ -1932,6 +1932,7 @@ LineChartPro.propTypes = {
       PropTypes.oneOfType([
         PropTypes.oneOf(['drag']),
         PropTypes.shape({
+          minPointers: PropTypes.number,
           pointerMode: PropTypes.oneOf(['mouse', 'touch']),
           requiredKeys: PropTypes.arrayOf(PropTypes.string),
           type: PropTypes.oneOf(['drag']).isRequired,
