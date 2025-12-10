@@ -155,6 +155,14 @@ function BarPlot(props: BarPlotProps) {
                 </g>
               );
             })}
+
+            {/* Debug helper to see where bars with zero height or width are */}
+            {data.map(({ color, x, y, height, width }) => {
+              if (height === 0 || width === 0) {
+                return <circle cx={x} cy={y} r={5} fill={color} stroke="black" />;
+              }
+              return null;
+            })}
           </g>
         );
       })}
