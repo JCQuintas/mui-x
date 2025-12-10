@@ -85,8 +85,16 @@ const seriesProcessor: SeriesProcessor<'bar'> = (params, dataset, isIdentifierVi
       .order(stackingOrder)
       .offset(stackingOffset)(d3Dataset);
 
+    // const idOrder = stackedData.map((s) => s.key);
+
+    // const idToIndexMap: { [key: string]: number } = {};
+    // idOrder.forEach((id, index) => {
+    //   idToIndexMap[id] = index;
+    // });
+
     // Compute visible stacked data
     const visibleStackedData = d3Stack<any, DatasetElementType<number | null>, SeriesId>()
+      // .keys(idOrder)
       .keys(keys)
       .value((d, key) => {
         const keyIndex = keys.indexOf(key);
