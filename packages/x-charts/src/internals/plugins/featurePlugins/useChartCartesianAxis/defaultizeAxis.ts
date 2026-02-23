@@ -38,8 +38,7 @@ export function defaultizeXAxis(
       DEFAULT_AXIS_SIZE_HEIGHT + (axisConfig.label ? AXIS_LABEL_DEFAULT_HEIGHT : 0);
 
     const id = axisConfig.id ?? `defaultized-x-axis-${index}`;
-    const height: number | 'auto' =
-      axisConfig.height === 'auto' ? 'auto' : (axisConfig.height ?? defaultHeight);
+    const height = axisConfig.height ?? defaultHeight;
     const sharedConfig = {
       offset: offsets[position],
       ...axisConfig,
@@ -99,8 +98,7 @@ export function defaultizeYAxis(
       DEFAULT_AXIS_SIZE_WIDTH + (axisConfig.label ? AXIS_LABEL_DEFAULT_HEIGHT : 0);
 
     const id = axisConfig.id ?? `defaultized-y-axis-${index}`;
-    const width: number | 'auto' =
-      axisConfig.width === 'auto' ? 'auto' : (axisConfig.width ?? defaultWidth);
+    const width = axisConfig.width ?? defaultWidth;
     const sharedConfig = {
       offset: offsets[position],
       ...axisConfig,
