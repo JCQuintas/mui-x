@@ -24,6 +24,7 @@ import {
   createDateFormatter,
   getDefaultTickNumber,
   scaleBand,
+  resolveAxisSize,
 } from '@mui/x-charts/internals';
 import {
   type AxisConfig,
@@ -144,10 +145,7 @@ export function computeAxisValue({
       const bandWidth = (rangeSpace - gap * (N - 1)) / N;
       const step = bandWidth + gap;
 
-      // Get axis size, resolving 'auto' to computed value from autoSizes
-      const axisSize =
-        axisDirection === 'x' ? (axis as DefaultedXAxis).height : (axis as DefaultedYAxis).width;
-      const resolvedSize = axisSize === 'auto' ? (autoSizes?.[axis.id] ?? 0) : (axisSize ?? 0);
+      const resolvedSize = resolveAxisSize(axis, autoSizes, axisDirection);
 
       completeAxis[axis.id] = {
         offset: 0,
@@ -220,10 +218,7 @@ export function computeAxisValue({
       const [minDomain, maxDomain] = finalScale.domain();
       const domain = [axis.min ?? minDomain, axis.max ?? maxDomain];
 
-      // Get axis size, resolving 'auto' to computed value from autoSizes
-      const axisSize =
-        axisDirection === 'x' ? (axis as DefaultedXAxis).height : (axis as DefaultedYAxis).width;
-      const resolvedSize = axisSize === 'auto' ? (autoSizes?.[axis.id] ?? 0) : (axisSize ?? 0);
+      const resolvedSize = resolveAxisSize(axis, autoSizes, axisDirection);
 
       completeAxis[axis.id] = {
         offset: 0,

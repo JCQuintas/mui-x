@@ -61,7 +61,7 @@ function shouldIgnoreGapRatios(scale: ScaleBand<{ toString(): string }>, categor
   return paddingPx < 0.1;
 }
 
-function resolveAxisSize(
+export function resolveAxisSize(
   axis: DefaultedAxis<ScaleName, any, Readonly<ChartsAxisProps>>,
   autoSizes: Record<AxisId, number> | undefined,
   direction: 'x' | 'y',
