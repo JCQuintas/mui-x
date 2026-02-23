@@ -25,6 +25,7 @@ import {
   getDefaultTickNumber,
   scaleBand,
   resolveAxisSize,
+  type ComputedAxis,
 } from '@mui/x-charts/internals';
 import {
   type AxisConfig,
@@ -165,7 +166,7 @@ export function computeAxisValue({
           (axis.colorMap.type === 'ordinal'
             ? getOrdinalColorScale({ values: axis.data, ...axis.colorMap })
             : getColorScale(axis.colorMap)),
-      } as ComputedAxisConfig<ChartsAxisProps>[string];
+      } as ComputedAxis<'band', any, ChartsAxisProps>;
 
       if (isDateData(axis.data)) {
         const dateFormatter = createDateFormatter(axis.data, scaleRange, axis.tickNumber);
@@ -231,7 +232,7 @@ export function computeAxisValue({
         scale: finalScale.domain(domain) as any,
         tickNumber,
         colorScale: axis.colorMap && getColorScale(axis.colorMap),
-      } as ComputedAxisConfig<ChartsAxisProps>[string];
+      } as ComputedAxis<'linear', any, ChartsAxisProps>;
     }
   });
   return {
