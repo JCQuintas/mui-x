@@ -9,16 +9,12 @@ import {
   type AxisAutoSizeResult,
 } from './computeAxisAutoSize';
 import type { AxisId } from '../../../../models/axis';
-import { isBandScaleConfig, isPointScaleConfig } from '../../../../models/axis';
 import { type UseChartDimensionsSignature } from '../../corePlugins/useChartDimensions/useChartDimensions.types';
 import type { ChartState } from '../../models';
-import { selectorChartSeriesProcessed } from '../../corePlugins/useChartSeries/useChartSeries.selectors';
 import {
-  selectorChartSeriesConfig,
-  type ChartSeriesConfig,
-} from '../../corePlugins/useChartSeriesConfig';
-import { getAxisExtrema } from './getAxisExtrema';
-import type { CartesianChartSeriesType } from '../../../../models/seriesType/config';
+  selectorChartXAxisExtrema,
+  selectorChartYAxisExtrema,
+} from './useChartAxisExtrema.selectors';
 
 // Direct state access to avoid circular dependency
 const selectorIsHydrated = (state: ChartState<[UseChartDimensionsSignature]>) =>
@@ -41,9 +37,8 @@ function getSize(result: AxisAutoSizeResult): number {
 export const selectorChartXAxisAutoSizeResults = createSelectorMemoized(
   selectorChartRawXAxis,
   selectorIsHydrated,
-  selectorChartSeriesProcessed,
-  selectorChartSeriesConfig,
-  function selectorChartXAxisAutoSizeResults(xAxes, isHydrated, formattedSeries, seriesConfig) {
+  selectorChartXAxisExtrema,
+  function selectorChartXAxisAutoSizeResults(xAxes, isHydrated, extremaMap) {
     const hasAutoAxis = xAxes?.some((axis) => axis.height === 'auto');
     if (!hasAutoAxis || !isHydrated) {
       return EMPTY_RESULTS;
@@ -54,21 +49,10 @@ export const selectorChartXAxisAutoSizeResults = createSelectorMemoized(
     for (let axisIndex = 0; axisIndex < (xAxes?.length ?? 0); axisIndex += 1) {
       const axis = xAxes![axisIndex];
       if (axis.height === 'auto') {
-        const extrema =
-          !isBandScaleConfig(axis) && !isPointScaleConfig(axis)
-            ? getAxisExtrema(
-                axis,
-                'x',
-                seriesConfig as ChartSeriesConfig<CartesianChartSeriesType>,
-                axisIndex,
-                formattedSeries,
-              )
-            : undefined;
-
         const computed = computeAxisAutoSize({
           axis,
           direction: 'x',
-          extrema,
+          extrema: extremaMap[axis.id],
         });
         if (computed !== undefined) {
           results[axis.id] = computed;
@@ -106,9 +90,8 @@ export const selectorChartXAxisAutoSizes = createSelectorMemoized(
 export const selectorChartYAxisAutoSizeResults = createSelectorMemoized(
   selectorChartRawYAxis,
   selectorIsHydrated,
-  selectorChartSeriesProcessed,
-  selectorChartSeriesConfig,
-  function selectorChartYAxisAutoSizeResults(yAxes, isHydrated, formattedSeries, seriesConfig) {
+  selectorChartYAxisExtrema,
+  function selectorChartYAxisAutoSizeResults(yAxes, isHydrated, extremaMap) {
     const hasAutoAxis = yAxes?.some((axis) => axis.width === 'auto');
     if (!hasAutoAxis || !isHydrated) {
       return EMPTY_RESULTS;
@@ -119,21 +102,10 @@ export const selectorChartYAxisAutoSizeResults = createSelectorMemoized(
     for (let axisIndex = 0; axisIndex < (yAxes?.length ?? 0); axisIndex += 1) {
       const axis = yAxes![axisIndex];
       if (axis.width === 'auto') {
-        const extrema =
-          !isBandScaleConfig(axis) && !isPointScaleConfig(axis)
-            ? getAxisExtrema(
-                axis,
-                'y',
-                seriesConfig as ChartSeriesConfig<CartesianChartSeriesType>,
-                axisIndex,
-                formattedSeries,
-              )
-            : undefined;
-
         const computed = computeAxisAutoSize({
           axis,
           direction: 'y',
-          extrema,
+          extrema: extremaMap[axis.id],
         });
         if (computed !== undefined) {
           results[axis.id] = computed;
