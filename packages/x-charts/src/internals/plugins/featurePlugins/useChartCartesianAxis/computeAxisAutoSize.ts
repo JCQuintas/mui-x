@@ -85,43 +85,38 @@ const MAX_AUTO_SIZE_CANDIDATES = 5;
 
 /**
  * From a list of rendered label strings, returns a small subset of candidates
- * that are most likely to be the visually widest.
- * Uses character count as a proxy for visual width, which works well in practice.
+ * that are most likely to be the visually widest and highest labels to measure for auto-size calculation.
+ * Uses character count as a proxy for visual width, and number of lines as a proxy for visual height, which works well in practice.
  */
-function selectWidestCandidates(labels: string[]): string[] {
+function selectBiggestCandidates(labels: string[]): string[] {
   if (labels.length <= MAX_AUTO_SIZE_CANDIDATES) {
     return labels;
   }
 
-  const getMaxLineLength = (label: string): number => {
-    if (!label.includes('\n')) {
-      return label.length;
-    }
-    let max = 0;
-    for (const line of label.split('\n')) {
-      if (line.length > max) {
-        max = line.length;
-      }
-    }
-    return max;
-  };
+  let maxLines = 1;
+  let maxLinesValue = null;
 
-  // Single pass: collect labels with the maximum line length
-  let maxLength = 0;
-  const candidates: string[] = [];
+  // Sort labels by length in descending order and take the top candidates, need to check for newlines as well
+  const sortedByWidth = [...labels].sort((a, b) => {
+    const aLines = a.split('\n').length;
+    const bLines = b.split('\n').length;
 
-  for (const label of labels) {
-    const labelLength = getMaxLineLength(label);
-    if (labelLength > maxLength) {
-      maxLength = labelLength;
-      candidates.length = 0;
-      candidates.push(label);
-    } else if (labelLength === maxLength && candidates.length < MAX_AUTO_SIZE_CANDIDATES) {
-      candidates.push(label);
+    if (aLines > maxLines) {
+      maxLines = aLines;
+      maxLinesValue = a;
+    } else if (bLines > maxLines) {
+      maxLines = bLines;
+      maxLinesValue = b;
     }
+
+    // Secondary sort by character count (more characters = potentially wider)
+    return b.length - a.length;
+  });
+  const candidates = new Set(sortedByWidth.slice(0, MAX_AUTO_SIZE_CANDIDATES));
+  if (maxLinesValue !== null) {
+    candidates.add(maxLinesValue);
   }
-
-  return candidates;
+  return Array.from(candidates);
 }
 
 /**
@@ -143,17 +138,14 @@ function getTickLabels(
 
     const labels = data.map((value) => {
       if (valueFormatter) {
-        return valueFormatter(value, {
-          location: 'auto-size',
-        });
+        return valueFormatter(value, { location: 'auto-size' });
       }
       return `${value}`;
     });
 
     // We only need the widest label to determine axis size.
-    // Measuring all labels is O(n) DOM operations — instead, pick a small set of
-    // candidates using label length as a proxy for visual width.
-    return selectWidestCandidates(labels);
+    // We pick a small set of candidates using label length as a proxy for visual width.
+    return selectBiggestCandidates(labels);
   }
 
   // Use axis min/max props first, then data extrema, then defaults.
