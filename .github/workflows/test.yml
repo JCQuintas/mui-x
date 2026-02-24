@@ -82,6 +82,12 @@ jobs:
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           flags: stable-browser
+      - name: Upload blob report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: blob-report-browser-${{ strategy.job-index }}
+          path: .vitest-reports/
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -108,8 +114,8 @@ jobs:
       - name: Download blob reports
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          pattern: test-results-browser-*
-          path: test-results/
+          pattern: blob-report-browser-*
+          path: .vitest-reports/
           merge-multiple: true
       - name: Merge reports
         run: pnpm exec vitest run --merge-reports
