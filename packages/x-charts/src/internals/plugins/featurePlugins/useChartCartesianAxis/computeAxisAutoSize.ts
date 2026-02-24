@@ -111,12 +111,12 @@ function selectWidestCandidates(labels: string[]): string[] {
   const candidates: string[] = [];
 
   for (const label of labels) {
-    const len = getMaxLineLength(label);
-    if (len > maxLength) {
-      maxLength = len;
+    const labelLength = getMaxLineLength(label);
+    if (labelLength > maxLength) {
+      maxLength = labelLength;
       candidates.length = 0;
       candidates.push(label);
-    } else if (len === maxLength && candidates.length < MAX_AUTO_SIZE_CANDIDATES) {
+    } else if (labelLength === maxLength && candidates.length < MAX_AUTO_SIZE_CANDIDATES) {
       candidates.push(label);
     }
   }
