@@ -69,7 +69,10 @@ jobs:
           for p in ${{ matrix.project }}; do
             PROJECTS="$PROJECTS --project $p"
           done
-          node ./scripts/playwrightLaunchServer.mjs & pnpm test:unit:browser --reporter=blob --reporter=dot --coverage $PROJECTS
+          node ./scripts/playwrightLaunchServer.mjs &
+          # Wait for the Playwright server to be ready
+          while ! nc -z 127.0.0.1 9050 2>/dev/null; do sleep 0.1; done
+          pnpm test:unit:browser --reporter=blob --reporter=dot --coverage $PROJECTS
         env:
           TZ: UTC
           PLAYWRIGHT_SERVER_WS: "ws://127.0.0.1:9050/mui-browser"
