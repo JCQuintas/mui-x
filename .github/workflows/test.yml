@@ -117,6 +117,8 @@ jobs:
           pattern: blob-report-browser-*
           path: .vitest-reports/
           merge-multiple: true
+      - name: Debug - list downloaded reports
+        run: ls -la .vitest-reports/ 2>/dev/null || echo ".vitest-reports/ does not exist"
       - name: Merge reports
         run: pnpm exec vitest run --merge-reports
         env:
