@@ -79,7 +79,7 @@ function fakeStockServer(params: GridGetRowsParams) {
     const stock = STOCKS[i % STOCKS.length];
     const base = basePrices[stock.symbol];
     // Deterministic fluctuation ±2% on each call
-    const fluctuation = 1 + (chance.floating({ min: -0.5, max: 0.5 }) * 0.04);
+    const fluctuation = 1 + chance.floating({ min: -0.5, max: 0.5 }) * 0.04;
     const price = Math.round(base * fluctuation * 100) / 100;
     const change = Math.round((price - base) * 100) / 100;
     const changePercent = Math.round((change / base) * 10000) / 100;

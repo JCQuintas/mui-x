@@ -126,7 +126,7 @@ function fakeStockServer(params: GridGetRowsParams) {
   for (let index = start; index < end; index += 1) {
     const stock = STOCKS[index % STOCKS.length];
     const basePrice = basePrices[stock.symbol];
-    const priceFluctuation = 1 + (chance.floating({ min: -0.5, max: 0.5 }) * 0.03);
+    const priceFluctuation = 1 + chance.floating({ min: -0.5, max: 0.5 }) * 0.03;
 
     rows.push({
       id: index,
