@@ -69,6 +69,7 @@ jobs:
           for p in ${{ matrix.project }}; do
             PROJECTS="$PROJECTS --project $p"
           done
+          mkdir -p .vitest-reports
           node ./scripts/playwrightLaunchServer.mjs &
           # Wait for the Playwright server to be ready
           while ! nc -z 127.0.0.1 9050 2>/dev/null; do sleep 0.1; done
@@ -117,9 +118,12 @@ jobs:
           pattern: blob-report-browser-*
           path: .vitest-reports/
           merge-multiple: true
-      - name: Debug - list downloaded reports
-        run: ls -la .vitest-reports/ 2>/dev/null || echo ".vitest-reports/ does not exist"
       - name: Merge reports
-        run: pnpm exec vitest run --merge-reports
+        run: |
+          if [ -d ".vitest-reports" ] && [ "$(ls -A .vitest-reports)" ]; then
+            pnpm exec vitest run --merge-reports
+          else
+            echo "No blob reports found, skipping merge"
+          fi
         env:
           COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
