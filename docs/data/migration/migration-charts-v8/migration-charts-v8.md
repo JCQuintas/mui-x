@@ -17,6 +17,14 @@ This is a reference guide for upgrading `@mui/x-charts` from v8 to v9.
 This guide is also available in <a href="https://raw.githubusercontent.com/mui/mui-x/refs/heads/master/docs/data/migration/migration-charts-v8/migration-charts-v8.md" target="_blank">Markdown format</a> to be referenced by AI tools like Copilot or Cursor to help you with the migration.
 :::
 
+## Prepare for the migration
+
+We highly recommend updating `@mui/x-charts` and `@mui/x-charts-pro` to the latest v8 version before migrating to v9.
+This will help you resolve deprecation warnings at your own pace, reducing the number of changes needed when upgrading.
+
+Below is a list of deprecated APIs and their replacements.
+Items marked with ✅ are handled by the [codemod](#run-codemods).
+
 ## Start using the new release
 
 In `package.json`, change the version of the charts package to `latest`.
