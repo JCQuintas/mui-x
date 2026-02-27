@@ -56,11 +56,8 @@
     }
   ],
   "classes": [],
-  "spread": false,
-  "themeDefaultProps": false,
-  "muiName": "MuiChartDataProviderPremium",
-  "forwardsRefTo": "HTMLDivElement",
-  "filename": "/packages/x-charts-premium/src/ChartDataProviderPremium/ChartDataProviderPremium.tsx",
+  "muiName": "MuiChartsDataProviderPro",
+  "filename": "/packages/x-charts-pro/src/ChartsDataProviderPro/ChartsDataProviderPro.tsx",
   "inheritance": null,
   "demos": "<ul><li><a href=\"/x/react-charts/composition/\">Charts - Composition</a></li></ul>",
   "cssComponent": false
