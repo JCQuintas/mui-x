@@ -13,9 +13,9 @@ import { ChartsSurface, type ChartsSurfaceProps } from '../ChartsSurface';
 import { type AllPluginSignatures } from '../internals/plugins/allPlugins';
 import { type ChartAnyPluginSignature } from '../internals/plugins/models/plugin';
 
-export interface ChartsContainerSlots extends ChartsDataProviderSlots { }
+export interface ChartsContainerSlots extends ChartsDataProviderSlots {}
 
-export interface ChartsContainerSlotProps extends ChartsDataProviderSlotProps { }
+export interface ChartsContainerSlotProps extends ChartsDataProviderSlotProps {}
 
 export type ChartsContainerProps<
   SeriesType extends ChartSeriesType = ChartSeriesType,

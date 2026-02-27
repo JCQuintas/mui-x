@@ -14,11 +14,11 @@ export const useChartsContext = <
   >;
   if (context == null) {
     throw new Error(
-      [
-        'MUI X Charts: Could not find the Charts context.',
-        'It looks like you rendered your component outside of a ChartsDataProvider.',
+      'MUI X Charts: Could not find the Chart context. ' +
+        'This happens when the component is rendered outside of a ChartsDataProvider or ChartsContainer parent component, ' +
+        'which means the required context is not available. ' +
+        'Wrap your component in a ChartsDataProvider or ChartsContainer. ' +
         'This can also happen if you are bundling multiple versions of the library.',
-      ].join('\n'),
     );
   }
 
