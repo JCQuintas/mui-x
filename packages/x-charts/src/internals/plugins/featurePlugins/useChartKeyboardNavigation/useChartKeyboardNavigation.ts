@@ -146,4 +146,5 @@ useChartKeyboardNavigation.getInitialState = (params) => ({
 
 useChartKeyboardNavigation.params = {
   disableKeyboardNavigation: true,
+  onItemClick: true,
 };

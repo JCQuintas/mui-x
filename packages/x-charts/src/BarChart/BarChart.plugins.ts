@@ -8,8 +8,6 @@ import { useChartInteraction } from '../internals/plugins/featurePlugins/useChar
 import type { UseChartInteractionSignature } from '../internals/plugins/featurePlugins/useChartInteraction';
 import { useChartHighlight } from '../internals/plugins/featurePlugins/useChartHighlight';
 import type { UseChartHighlightSignature } from '../internals/plugins/featurePlugins/useChartHighlight';
-import { useChartItemActivation } from '../internals/plugins/featurePlugins/useChartItemActivation';
-import type { UseChartItemActivationSignature } from '../internals/plugins/featurePlugins/useChartItemActivation';
 import { useChartKeyboardNavigation } from '../internals/plugins/featurePlugins/useChartKeyboardNavigation';
 import type { UseChartKeyboardNavigationSignature } from '../internals/plugins/featurePlugins/useChartKeyboardNavigation';
 import type { ConvertSignaturesIntoPlugins } from '../internals/plugins/models/helpers';
@@ -26,7 +24,6 @@ export type BarChartPluginSignatures = [
   UseChartCartesianAxisSignature<'bar'>,
   UseChartHighlightSignature<'bar'>,
   UseChartVisibilityManagerSignature<'bar'>,
-  UseChartItemActivationSignature,
   UseChartKeyboardNavigationSignature,
 ];
 
@@ -38,6 +35,5 @@ export const BAR_CHART_PLUGINS: ConvertSignaturesIntoPlugins<BarChartPluginSigna
   useChartCartesianAxis,
   useChartHighlight,
   useChartVisibilityManager,
-  useChartItemActivation,
   useChartKeyboardNavigation,
 ];

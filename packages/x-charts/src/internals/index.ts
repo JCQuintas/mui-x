@@ -49,7 +49,6 @@ export * from './plugins/featurePlugins/useChartKeyboardNavigation';
 export * from './plugins/featurePlugins/useChartClosestPoint';
 export * from './plugins/featurePlugins/useChartBrush';
 export * from './plugins/featurePlugins/useChartItemClick';
-export * from './plugins/featurePlugins/useChartItemActivation';
 export * from './plugins/featurePlugins/useProgressiveRendering';
 export * from './plugins/utils/selectors';
 export { getAxisTriggerTooltip as getCartesianAxisTriggerTooltip } from './plugins/featurePlugins/useChartCartesianAxis/getAxisTriggerTooltip';

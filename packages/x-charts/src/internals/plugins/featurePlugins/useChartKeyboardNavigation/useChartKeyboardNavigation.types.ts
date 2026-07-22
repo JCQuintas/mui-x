@@ -3,7 +3,6 @@ import type { UseChartInteractionSignature } from '../useChartInteraction';
 import type { UseChartCartesianAxisSignature } from '../useChartCartesianAxis';
 import type { UseChartHighlightSignature } from '../useChartHighlight';
 import type { UseChartClosestPointSignature } from '../useChartClosestPoint';
-import type { UseChartItemActivationSignature } from '../useChartItemActivation';
 import type { UseChartItemClickSignature } from '../useChartItemClick';
 import type { FocusedItemIdentifier } from '../../../../models/seriesType';
 import type { ChartSeriesType } from '../../../../models/seriesType/config';
@@ -32,6 +31,13 @@ type UseChartKeyboardNavigationParameters = {
    * If `true`, disables keyboard navigation for the chart.
    */
   disableKeyboardNavigation?: boolean;
+  /**
+   * Callback fired when the focused item is activated with the Enter or Space keys.
+   * Requires the `enableKeyboardClickEvents` experimental feature.
+   * Charts forward their own item callback here, so its signature is left to the chart.
+   * @param {...any} args The arguments the chart declares on its own callback.
+   */
+  onItemClick?: (...args: any[]) => void;
 };
 
 export type UseChartKeyboardNavigationSignature = ChartPluginSignature<{
@@ -44,7 +50,6 @@ export type UseChartKeyboardNavigationSignature = ChartPluginSignature<{
     UseChartHighlightSignature<ChartSeriesType>,
     UseChartCartesianAxisSignature,
     UseChartClosestPointSignature,
-    UseChartItemActivationSignature,
     UseChartItemClickSignature,
   ];
 }>;

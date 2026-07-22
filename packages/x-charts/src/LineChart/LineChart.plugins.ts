@@ -15,8 +15,6 @@ import { useChartBrush } from '../internals/plugins/featurePlugins/useChartBrush
 import type { UseChartBrushSignature } from '../internals/plugins/featurePlugins/useChartBrush';
 import { useChartVisibilityManager } from '../internals/plugins/featurePlugins/useChartVisibilityManager';
 import type { UseChartVisibilityManagerSignature } from '../internals/plugins/featurePlugins/useChartVisibilityManager';
-import { useChartItemActivation } from '../internals/plugins/featurePlugins/useChartItemActivation';
-import type { UseChartItemActivationSignature } from '../internals/plugins/featurePlugins/useChartItemActivation';
 
 export type LineChartPluginSignatures = [
   UseChartZAxisSignature,
@@ -27,7 +25,6 @@ export type LineChartPluginSignatures = [
   UseChartHighlightSignature<'line'>,
   UseChartVisibilityManagerSignature<'line'>,
   UseChartKeyboardNavigationSignature,
-  UseChartItemActivationSignature,
 ];
 
 export const LINE_CHART_PLUGINS: ConvertSignaturesIntoPlugins<LineChartPluginSignatures> = [
@@ -39,5 +36,4 @@ export const LINE_CHART_PLUGINS: ConvertSignaturesIntoPlugins<LineChartPluginSig
   useChartHighlight,
   useChartVisibilityManager,
   useChartKeyboardNavigation,
-  useChartItemActivation,
 ];

@@ -10,8 +10,6 @@ import { useChartKeyboardNavigation } from '../internals/plugins/featurePlugins/
 import type { UseChartKeyboardNavigationSignature } from '../internals/plugins/featurePlugins/useChartKeyboardNavigation';
 import { useChartVisibilityManager } from '../internals/plugins/featurePlugins/useChartVisibilityManager';
 import type { UseChartVisibilityManagerSignature } from '../internals/plugins/featurePlugins/useChartVisibilityManager';
-import { useChartItemActivation } from '../internals/plugins/featurePlugins/useChartItemActivation';
-import type { UseChartItemActivationSignature } from '../internals/plugins/featurePlugins/useChartItemActivation';
 
 export const RADAR_PLUGINS = [
   useChartTooltip,
@@ -20,7 +18,6 @@ export const RADAR_PLUGINS = [
   useChartHighlight,
   useChartKeyboardNavigation,
   useChartVisibilityManager,
-  useChartItemActivation,
 ] as const;
 
 export type RadarChartPluginSignatures = [
@@ -30,5 +27,4 @@ export type RadarChartPluginSignatures = [
   UseChartHighlightSignature<'radar'>,
   UseChartKeyboardNavigationSignature,
   UseChartVisibilityManagerSignature<'radar'>,
-  UseChartItemActivationSignature,
 ];

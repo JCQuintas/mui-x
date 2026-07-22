@@ -62,7 +62,7 @@ export interface RadialLineChartProps
   extends
     Omit<
       ChartsRadialDataProviderPremiumProps<'radialLine', RadialLineChartPluginSignatures>,
-      'series' | 'plugins' | 'zAxis' | 'slots' | 'slotProps'
+      'series' | 'plugins' | 'zAxis' | 'slots' | 'slotProps' | 'onItemClick'
     >,
     Omit<ChartsOverlayProps, 'slots' | 'slotProps'> {
   /**

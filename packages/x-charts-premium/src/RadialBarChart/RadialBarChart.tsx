@@ -54,7 +54,7 @@ export interface RadialBarChartProps
   extends
     Omit<
       ChartsRadialDataProviderPremiumProps<'radialBar', RadialBarChartPluginSignatures>,
-      'series' | 'plugins' | 'zAxis' | 'slots' | 'slotProps'
+      'series' | 'plugins' | 'zAxis' | 'slots' | 'slotProps' | 'onItemClick'
     >,
     Omit<ChartsOverlayProps, 'slots' | 'slotProps'> {
   /**
