@@ -15,8 +15,6 @@ export function createActivatingKeyboardFocusHandler<
   );
 
   const keyboardFocusHandler = (event: KeyboardEvent) => {
-    // Repeats are reported as activations too, so the caller can keep preventing the default
-    // scroll while the key is held. It is up to the caller to only fire the callback once.
     if (event.key === ' ' || event.key === 'Enter') {
       return 'activate' as const;
     }

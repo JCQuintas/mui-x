@@ -1,19 +1,13 @@
 'use client';
-import * as React from 'react';
 import useEnhancedEffect from '@mui/utils/useEnhancedEffect';
+import * as React from 'react';
+import type { ChartSeriesType } from '../../../../models/seriesType/config';
+import { selectorChartExperimentalFeaturesState } from '../../corePlugins/useChartExperimentalFeature';
 import { selectorChartDefaultizedSeries } from '../../corePlugins/useChartSeries/useChartSeries.selectors';
 import { selectorChartSeriesConfig } from '../../corePlugins/useChartSeriesConfig';
-import { selectorChartExperimentalFeaturesState } from '../../corePlugins/useChartExperimentalFeature';
 import type { ChartPlugin } from '../../models';
-import type { UseChartKeyboardNavigationSignature } from './useChartKeyboardNavigation.types';
-import type { ChartSeriesType } from '../../../../models/seriesType/config';
 import type { FocusedItemUpdater, KeyboardActivation } from './keyboardFocusHandler.types';
-import type { ScatterItemIdentifier } from '../../../../models/seriesType';
-
-type KeyboardActivationHandler = (
-  event: KeyboardEvent,
-  scatterItemIdentifier: ScatterItemIdentifier,
-) => void;
+import type { UseChartKeyboardNavigationSignature } from './useChartKeyboardNavigation.types';
 
 export const useChartKeyboardNavigation: ChartPlugin<UseChartKeyboardNavigationSignature> = ({
   params,
@@ -95,9 +89,7 @@ export const useChartKeyboardNavigation: ChartPlugin<UseChartKeyboardNavigationS
           event.preventDefault();
 
           if (!event.repeat) {
-            // `onItemClick` is typed with `MouseEvent` until the consumer opts into the
-            // `keyboardItemActivation` module augmentation.
-            (onItemClick as KeyboardActivationHandler | undefined)?.(event, newFocusedItem);
+            onItemClick?.(event, newFocusedItem);
           }
         }
         return;
