@@ -26,7 +26,14 @@ export interface SankeyChartProps
   extends
     Omit<
       ChartsContainerProProps<'sankey', SankeyChartPluginSignatures>,
-      'plugins' | 'series' | 'slotProps' | 'slots' | 'dataset' | 'hideLegend' | 'skipAnimation'
+      | 'plugins'
+      | 'series'
+      | 'slotProps'
+      | 'slots'
+      | 'dataset'
+      | 'hideLegend'
+      | 'skipAnimation'
+      | 'onItemClick'
     >,
     Omit<SankeyPlotProps, 'data'>,
     Omit<ChartsOverlayProps, 'slots' | 'slotProps'>,
@@ -209,15 +216,17 @@ SankeyChart.propTypes /* remove-proptypes */ = {
    */
   onHighlightChange: PropTypes.func,
   /**
-   * Callback fired when a sankey item is clicked.
+   * Callback fired when a sankey link is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
-   * @param {SankeyLinkIdentifierWithData} link The sankey link identifier.
+   * @param {SankeyLinkIdentifierWithData} link The sankey link identifier. The computed `link` layout is absent on Enter or Space activation.
    */
   onLinkClick: PropTypes.func,
   /**
-   * Callback fired when a sankey item is clicked.
+   * Callback fired when a sankey node is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
-   * @param {SankeyNodeIdentifierWithData} node The sankey node identifier.
+   * @param {SankeyNodeIdentifierWithData} node The sankey node identifier. The computed `node` layout is absent on Enter or Space activation.
    */
   onNodeClick: PropTypes.func,
   /**

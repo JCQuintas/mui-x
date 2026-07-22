@@ -7,6 +7,7 @@ import {
   useChartKeyboardNavigation,
   useChartBrush,
   useChartVisibilityManager,
+  useChartItemActivation,
 } from '@mui/x-charts/internals';
 import type {
   ConvertSignaturesIntoPlugins,
@@ -18,6 +19,7 @@ import type {
   UseChartKeyboardNavigationSignature,
   UseChartBrushSignature,
   UseChartVisibilityManagerSignature,
+  UseChartItemActivationSignature,
 } from '@mui/x-charts/internals';
 import { useChartProExport } from '../internals/plugins/useChartProExport';
 import type { UseChartProExportSignature } from '../internals/plugins/useChartProExport';
@@ -35,6 +37,7 @@ export type BarChartProPluginSignatures = [
   UseChartHighlightSignature<'bar'>,
   UseChartVisibilityManagerSignature<'bar'>,
   UseChartKeyboardNavigationSignature,
+  UseChartItemActivationSignature,
   UseChartProZoomSignature,
   UseChartProExportSignature,
   UseChartProSamplingSignature,
@@ -49,6 +52,7 @@ export const BAR_CHART_PRO_PLUGINS: ConvertSignaturesIntoPlugins<BarChartProPlug
   useChartHighlight,
   useChartVisibilityManager,
   useChartKeyboardNavigation,
+  useChartItemActivation,
   useChartProZoom,
   useChartProExport,
   useChartProSampling,

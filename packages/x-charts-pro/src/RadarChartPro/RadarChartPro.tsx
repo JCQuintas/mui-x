@@ -43,7 +43,10 @@ export interface RadarChartProSlotProps
 export interface RadarChartProProps
   extends
     Omit<RadarChartProps, 'apiRef' | 'slots' | 'slotProps' | 'plugins' | 'seriesConfig'>,
-    Omit<RadarDataProviderProps<RadarChartProPluginSignatures>, 'slots' | 'slotProps'> {
+    Omit<
+      RadarDataProviderProps<RadarChartProPluginSignatures>,
+      'slots' | 'slotProps' | 'onItemClick'
+    > {
   /**
    * Overridable component slots.
    * @default {}
@@ -309,8 +312,9 @@ RadarChartPro.propTypes /* remove-proptypes */ = {
    */
   onHighlightChange: PropTypes.func,
   /**
-   * Callback fired when a mark is clicked.
-   * @param {React.MouseEvent<SVGPathElement, MouseEvent>} event The event source of the callback.
+   * Callback fired when a mark is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
    * @param {RadarItemIdentifier} radarItemIdentifier The radar item identifier.
    */
   onMarkClick: PropTypes.func,

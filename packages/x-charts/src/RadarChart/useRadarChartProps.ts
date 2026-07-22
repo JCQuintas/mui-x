@@ -44,6 +44,7 @@ export const useRadarChartProps = (props: RadarChartProps) => {
     onAreaClick,
     onMarkClick,
     disableKeyboardNavigation,
+    experimentalFeatures,
     className,
     ...other
   } = props;
@@ -62,6 +63,9 @@ export const useRadarChartProps = (props: RadarChartProps) => {
     skipAnimation,
     onAxisClick,
     disableKeyboardNavigation,
+    experimentalFeatures,
+    // Forwarded so keyboard activation can reach it. Pointer clicks stay on the marks plot.
+    onItemClick: onMarkClick as any,
     plugins: RADAR_PLUGINS,
   };
 
@@ -85,7 +89,9 @@ export const useRadarChartProps = (props: RadarChartProps) => {
   const radarGrid: RadarGridProps = { divisions, shape, stripeColor };
 
   const radarSeriesAreaProps: RadarSeriesAreaProps = { onItemClick: onAreaClick };
-  const radarSeriesMarksProps: RadarSeriesMarksProps = { onItemClick: onMarkClick };
+  const radarSeriesMarksProps: RadarSeriesMarksProps = {
+    onItemClick: onMarkClick as RadarSeriesMarksProps['onItemClick'],
+  };
   const chartsSurfaceProps: ChartsSurfaceProps = other;
 
   return {

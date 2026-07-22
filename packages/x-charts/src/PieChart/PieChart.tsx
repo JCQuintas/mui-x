@@ -17,7 +17,12 @@ import { ChartsLegend } from '../ChartsLegend';
 import type { ChartsLegendSlotProps, ChartsLegendSlots } from '../ChartsLegend';
 import { PiePlot } from './PiePlot';
 import type { PiePlotProps, PiePlotSlotProps, PiePlotSlots } from './PiePlot';
-import type { PieValueType } from '../models/seriesType/pie';
+import type {
+  DefaultizedPieValueType,
+  PieItemIdentifier,
+  PieValueType,
+} from '../models/seriesType/pie';
+import type { ItemActivationEvent, ItemActivationExtra } from '../models/featureFlags';
 import { ChartsOverlay } from '../ChartsOverlay';
 import type {
   ChartsOverlayProps,
@@ -54,7 +59,10 @@ export interface PieChartSlotProps
 export type PieSeries = MakeOptional<PieSeriesType<MakeOptional<PieValueType, 'id'>>, 'type'>;
 export interface PieChartProps
   extends
-    Omit<ChartsContainerProps<'pie', PieChartPluginSignatures>, 'series' | 'slots' | 'slotProps'>,
+    Omit<
+      ChartsContainerProps<'pie', PieChartPluginSignatures>,
+      'series' | 'slots' | 'slotProps' | 'onItemClick'
+    >,
     Omit<ChartsOverlayProps, 'slots' | 'slotProps'>,
     Pick<PiePlotProps, 'skipAnimation'> {
   /**
@@ -67,9 +75,17 @@ export interface PieChartProps
    */
   hideLegend?: boolean;
   /**
-   * Callback fired when a pie arc is clicked.
+   * Callback fired when a pie arc is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {React.MouseEvent<SVGPathElement, MouseEvent>} event The event source of the callback.
+   * @param {PieItemIdentifier} pieItemIdentifier The pie item identifier.
+   * @param {DefaultizedPieValueType} item The pie item. It is absent on Enter or Space activation.
    */
-  onItemClick?: PiePlotProps['onItemClick'];
+  onItemClick?: (
+    event: ItemActivationEvent<React.MouseEvent<SVGPathElement, MouseEvent>>,
+    pieItemIdentifier: PieItemIdentifier,
+    item: ItemActivationExtra<DefaultizedPieValueType>,
+  ) => void;
   /**
    * If true, shows the default chart toolbar.
    * @default false
@@ -137,6 +153,8 @@ const PieChart = React.forwardRef(function PieChart(
     highlightedItem,
     onHighlightChange,
     skipAnimation,
+    // Forwarded so keyboard activation can reach it. Pointer clicks stay on the plot component.
+    onItemClick,
     plugins: PIE_CHART_PLUGINS,
   });
 
@@ -162,7 +180,11 @@ const PieChart = React.forwardRef(function PieChart(
           />
         )}
         <ChartsSurface {...chartsSurfaceProps}>
-          <PiePlot slots={slots} slotProps={slotProps} onItemClick={onItemClick} />
+          <PiePlot
+            slots={slots}
+            slotProps={slotProps}
+            onItemClick={onItemClick as PiePlotProps['onItemClick']}
+          />
           <FocusedPieArc />
           <ChartsOverlay loading={loading} slots={slots} slotProps={slotProps} />
           {children}
@@ -340,7 +362,11 @@ PieChart.propTypes /* remove-proptypes */ = {
    */
   onHighlightChange: PropTypes.func,
   /**
-   * Callback fired when a pie arc is clicked.
+   * Callback fired when a pie arc is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {React.MouseEvent<SVGPathElement, MouseEvent>} event The event source of the callback.
+   * @param {PieItemIdentifier} pieItemIdentifier The pie item identifier.
+   * @param {DefaultizedPieValueType} item The pie item. It is absent on Enter or Space activation.
    */
   onItemClick: PropTypes.func,
   /**

@@ -4,17 +4,23 @@
     "classes": { "description": "Classes applied to the various elements." },
     "className": { "description": "A CSS class name applied to the root element." },
     "onLinkClick": {
-      "description": "Callback fired when a sankey item is clicked.",
+      "description": "Callback fired when a sankey link is activated. Activation with the Enter and Space keys requires the <code>enableKeyboardClickEvents</code> experimental feature.",
       "typeDescriptions": {
         "event": { "name": "event", "description": "The event source of the callback." },
-        "link": { "name": "link", "description": "The sankey link identifier." }
+        "link": {
+          "name": "link",
+          "description": "The sankey link identifier. The computed <code>link</code> layout is absent on Enter or Space activation."
+        }
       }
     },
     "onNodeClick": {
-      "description": "Callback fired when a sankey item is clicked.",
+      "description": "Callback fired when a sankey node is activated. Activation with the Enter and Space keys requires the <code>enableKeyboardClickEvents</code> experimental feature.",
       "typeDescriptions": {
         "event": { "name": "event", "description": "The event source of the callback." },
-        "node": { "name": "node", "description": "The sankey node identifier." }
+        "node": {
+          "name": "node",
+          "description": "The sankey node identifier. The computed <code>node</code> layout is absent on Enter or Space activation."
+        }
       }
     }
   },

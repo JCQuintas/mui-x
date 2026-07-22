@@ -10,9 +10,10 @@ import { LinePlot } from './LinePlot';
 import type { LinePlotProps, LinePlotSlotProps, LinePlotSlots } from './LinePlot';
 import type { ChartsContainerProps } from '../ChartsContainer';
 import { MarkPlot } from './MarkPlot';
-import type { MarkPlotProps, MarkPlotSlotProps, MarkPlotSlots } from './MarkPlot';
+import type { MarkPlotSlotProps, MarkPlotSlots } from './MarkPlot';
 import { ChartsAxis } from '../ChartsAxis/ChartsAxis';
-import type { LineSeriesType } from '../models/seriesType/line';
+import type { LineItemClickIdentifier, LineSeriesType } from '../models/seriesType/line';
+import type { ItemActivationEvent } from '../models/featureFlags';
 import { ChartsTooltip } from '../ChartsTooltip';
 import type {
   ChartsTooltipSlots,
@@ -71,7 +72,10 @@ export interface LineChartSlotProps
 export type LineSeries = MakeOptional<LineSeriesType, 'type'>;
 export interface LineChartProps
   extends
-    Omit<ChartsContainerProps<'line', LineChartPluginSignatures>, 'series' | 'plugins' | 'zAxis'>,
+    Omit<
+      ChartsContainerProps<'line', LineChartPluginSignatures>,
+      'series' | 'plugins' | 'zAxis' | 'onItemClick'
+    >,
     Omit<ChartsOverlayProps, 'slots' | 'slotProps'> {
   /**
    * The series to display in the line chart.
@@ -115,9 +119,15 @@ export interface LineChartProps
    */
   onLineClick?: LinePlotProps['onItemClick'];
   /**
-   * Callback fired when a mark element is clicked.
+   * Callback fired when a mark element is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
+   * @param {LineItemClickIdentifier} lineItemIdentifier The line mark item identifier.
    */
-  onMarkClick?: MarkPlotProps['onItemClick'];
+  onMarkClick?: (
+    event: ItemActivationEvent<React.MouseEvent<SVGElement, MouseEvent>>,
+    lineItemIdentifier: LineItemClickIdentifier,
+  ) => void;
   /**
    * If `true`, animations are skipped.
    * @default false
@@ -436,7 +446,10 @@ LineChart.propTypes /* remove-proptypes */ = {
    */
   onLineClick: PropTypes.func,
   /**
-   * Callback fired when a mark element is clicked.
+   * Callback fired when a mark element is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
+   * @param {LineItemClickIdentifier} lineItemIdentifier The line mark item identifier.
    */
   onMarkClick: PropTypes.func,
   /**

@@ -82,7 +82,7 @@
       }
     },
     "onMarkClick": {
-      "description": "Callback fired when a mark is clicked.",
+      "description": "Callback fired when a mark is activated. Activation with the Enter and Space keys requires the <code>enableKeyboardClickEvents</code> experimental feature.",
       "typeDescriptions": {
         "event": { "name": "event", "description": "The event source of the callback." },
         "radarItemIdentifier": {

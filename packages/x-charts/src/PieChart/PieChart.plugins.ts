@@ -9,6 +9,8 @@ import type { UseChartKeyboardNavigationSignature } from '../internals/plugins/f
 import type { ConvertSignaturesIntoPlugins } from '../internals/plugins/models/helpers';
 import { useChartVisibilityManager } from '../internals/plugins/featurePlugins/useChartVisibilityManager';
 import type { UseChartVisibilityManagerSignature } from '../internals/plugins/featurePlugins/useChartVisibilityManager';
+import { useChartItemActivation } from '../internals/plugins/featurePlugins/useChartItemActivation';
+import type { UseChartItemActivationSignature } from '../internals/plugins/featurePlugins/useChartItemActivation';
 
 export type PieChartPluginSignatures = [
   UseChartTooltipSignature<'pie'>,
@@ -16,6 +18,7 @@ export type PieChartPluginSignatures = [
   UseChartHighlightSignature<'pie'>,
   UseChartVisibilityManagerSignature<'pie'>,
   UseChartKeyboardNavigationSignature,
+  UseChartItemActivationSignature,
 ];
 export const PIE_CHART_PLUGINS: ConvertSignaturesIntoPlugins<PieChartPluginSignatures> = [
   useChartTooltip,
@@ -23,4 +26,5 @@ export const PIE_CHART_PLUGINS: ConvertSignaturesIntoPlugins<PieChartPluginSigna
   useChartHighlight,
   useChartVisibilityManager,
   useChartKeyboardNavigation,
+  useChartItemActivation,
 ];

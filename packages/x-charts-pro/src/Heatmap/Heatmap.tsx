@@ -335,9 +335,10 @@ Heatmap.propTypes /* remove-proptypes */ = {
    */
   onHighlightChange: PropTypes.func,
   /**
-   * The callback fired when an item is clicked.
+   * The callback fired when an item is clicked, or when it is activated with the Enter or Space keys.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    *
-   * @param {React.MouseEvent<HTMLDivElement, MouseEvent>} event The click event.
+   * @param {React.MouseEvent<HTMLDivElement, MouseEvent>} event The event that activated the item. It is a `KeyboardEvent` on Enter or Space activation. Import `@mui/x-charts/moduleAugmentation/keyboardItemActivation` for correct typing.
    * @param {SeriesItemIdentifierWithType<SeriesType>} item The clicked item.
    */
   onItemClick: PropTypes.func,

@@ -12,3 +12,14 @@ export type ItemActivationEvent<TEvent = MouseEvent> =
   HasProperty<ChartsTypeFeatureFlags, 'itemActivationEvent'> extends true
     ? TEvent | KeyboardEvent
     : TEvent;
+
+/**
+ * An `onItemClick` argument that pointer interaction can compute but keyboard activation cannot,
+ * where `TPointer` is what a pointer interaction provides and `TKeyboard` what remains available on
+ * Enter and Space activation. Defaults to `TPointer`. Import
+ * `@mui/x-charts/moduleAugmentation/keyboardItemActivation` to widen it with `TKeyboard`.
+ */
+export type ItemActivationExtra<TPointer, TKeyboard = undefined> =
+  HasProperty<ChartsTypeFeatureFlags, 'itemActivationEvent'> extends true
+    ? TPointer | TKeyboard
+    : TPointer;

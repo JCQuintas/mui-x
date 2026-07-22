@@ -95,6 +95,8 @@ export const useLineChartProps = (props: LineChartProps) => {
       axisHighlight?.y === 'none',
     skipAnimation,
     brushConfig,
+    // Forwarded so keyboard activation can reach it. Pointer clicks stay on the mark plot.
+    onItemClick: onMarkClick as any,
     plugins: LINE_CHART_PLUGINS,
   };
 
@@ -126,7 +128,7 @@ export const useLineChartProps = (props: LineChartProps) => {
   const markPlotProps: MarkPlotProps = {
     slots,
     slotProps,
-    onItemClick: onMarkClick,
+    onItemClick: onMarkClick as MarkPlotProps['onItemClick'],
     skipAnimation,
   };
 

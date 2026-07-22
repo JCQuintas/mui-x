@@ -1,8 +1,10 @@
+import * as React from 'react';
 import { DEFAULT_MARGINS } from '@mui/x-charts/constants';
 import { defaultizeMargin } from '@mui/x-charts/internals';
 import type { ChartsOverlayProps } from '@mui/x-charts/ChartsOverlay';
 import type { ChartsWrapperProps } from '@mui/x-charts/ChartsWrapper';
 import type { SankeyChartProps } from './SankeyChart';
+import type { SankeyItemIdentifier } from './sankey.types';
 import type { ChartsContainerProProps } from '../ChartsContainerPro';
 import { SANKEY_CHART_PLUGINS } from './SankeyChart.plugins';
 import type { SankeyChartPluginSignatures } from './SankeyChart.plugins';
@@ -37,6 +39,18 @@ export const useSankeyChartProps = (props: SankeyChartProps) => {
 
   const margin = defaultizeMargin(marginProps, DEFAULT_MARGINS);
 
+  // Keyboard activation reports the focused item; dispatch it to the matching pointer callback.
+  const onItemClick = React.useCallback(
+    (event: KeyboardEvent, item: SankeyItemIdentifier) => {
+      if (item.subType === 'node') {
+        (onNodeClick as ((...args: any[]) => void) | undefined)?.(event, item);
+      } else {
+        (onLinkClick as ((...args: any[]) => void) | undefined)?.(event, item);
+      }
+    },
+    [onNodeClick, onLinkClick],
+  );
+
   const chartsContainerProps: ChartsContainerProProps<'sankey', SankeyChartPluginSignatures> = {
     ...other,
     series: [
@@ -53,6 +67,7 @@ export const useSankeyChartProps = (props: SankeyChartProps) => {
     highlightedItem,
     onHighlightChange,
     apiRef,
+    onItemClick,
     plugins: SANKEY_CHART_PLUGINS,
   };
 

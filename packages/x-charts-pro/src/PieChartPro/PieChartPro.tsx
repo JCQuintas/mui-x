@@ -7,7 +7,12 @@ import { ChartsTooltip } from '@mui/x-charts/ChartsTooltip';
 import { ChartsLegend } from '@mui/x-charts/ChartsLegend';
 import { ChartsSurface } from '@mui/x-charts/ChartsSurface';
 import { FocusedPieArc, PiePlot } from '@mui/x-charts/PieChart';
-import type { PieChartProps, PieChartSlotProps, PieChartSlots } from '@mui/x-charts/PieChart';
+import type {
+  PieChartProps,
+  PieChartSlotProps,
+  PieChartSlots,
+  PiePlotProps,
+} from '@mui/x-charts/PieChart';
 import { ChartsWrapper } from '@mui/x-charts/ChartsWrapper';
 import { useChartsContainerProProps } from '../ChartsContainerPro/useChartsContainerProProps';
 import { ChartsDataProviderPro } from '../ChartsDataProviderPro';
@@ -34,7 +39,7 @@ export interface PieChartProProps
     Omit<PieChartProps, 'apiRef' | 'slots' | 'slotProps' | 'plugins' | 'seriesConfig'>,
     Omit<
       ChartsContainerProProps<'pie', PieChartProPluginSignatures>,
-      'series' | 'slots' | 'slotProps'
+      'series' | 'slots' | 'slotProps' | 'onItemClick'
     > {
   /**
    * Overridable component slots.
@@ -87,6 +92,8 @@ const PieChartPro = React.forwardRef<HTMLDivElement, PieChartProProps>(
       onHighlightChange,
       className,
       skipAnimation,
+      // Forwarded so keyboard activation can reach it. Pointer clicks stay on the plot component.
+      onItemClick,
       plugins: PIE_CHART_PRO_PLUGINS,
     });
 
@@ -111,7 +118,11 @@ const PieChartPro = React.forwardRef<HTMLDivElement, PieChartProProps>(
             />
           )}
           <ChartsSurface {...chartsSurfaceProps}>
-            <PiePlot slots={slots} slotProps={slotProps} onItemClick={onItemClick} />
+            <PiePlot
+              slots={slots}
+              slotProps={slotProps}
+              onItemClick={onItemClick as PiePlotProps['onItemClick']}
+            />
             <FocusedPieArc />
             <ChartsOverlay loading={loading} slots={slots} slotProps={slotProps} />
             {children}
@@ -293,7 +304,11 @@ PieChartPro.propTypes /* remove-proptypes */ = {
    */
   onHighlightChange: PropTypes.func,
   /**
-   * Callback fired when a pie arc is clicked.
+   * Callback fired when a pie arc is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {React.MouseEvent<SVGPathElement, MouseEvent>} event The event source of the callback.
+   * @param {PieItemIdentifier} pieItemIdentifier The pie item identifier.
+   * @param {DefaultizedPieValueType} item The pie item. It is absent on Enter or Space activation.
    */
   onItemClick: PropTypes.func,
   /**

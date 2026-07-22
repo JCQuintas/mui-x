@@ -48,7 +48,7 @@ export interface LineChartProProps
     Omit<LineChartProps, 'apiRef' | 'slots' | 'slotProps' | 'plugins' | 'seriesConfig'>,
     Omit<
       ChartsContainerProProps<'line', LineChartProPluginSignatures>,
-      'series' | 'slots' | 'slotProps' | 'sampling'
+      'series' | 'slots' | 'slotProps' | 'sampling' | 'onItemClick'
     > {
   /**
    * Sampling method used to render large datasets when zoomed out.
@@ -435,7 +435,10 @@ LineChartPro.propTypes /* remove-proptypes */ = {
    */
   onLineClick: PropTypes.func,
   /**
-   * Callback fired when a mark element is clicked.
+   * Callback fired when a mark element is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
+   * @param {LineItemClickIdentifier} lineItemIdentifier The line mark item identifier.
    */
   onMarkClick: PropTypes.func,
   /**

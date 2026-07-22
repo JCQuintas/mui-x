@@ -105,7 +105,13 @@
       }
     },
     "onLineClick": { "type": { "name": "func" } },
-    "onMarkClick": { "type": { "name": "func" } },
+    "onMarkClick": {
+      "type": { "name": "func" },
+      "signature": {
+        "type": "function(event: React.MouseEvent<SVGElement, MouseEvent>, lineItemIdentifier: LineItemClickIdentifier) => void",
+        "describedArgs": ["event", "lineItemIdentifier"]
+      }
+    },
     "onTooltipAxisChange": {
       "type": { "name": "func" },
       "signature": {

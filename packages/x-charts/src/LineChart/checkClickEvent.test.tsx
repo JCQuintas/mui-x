@@ -79,6 +79,29 @@ describe('LineChart - click event', () => {
   });
 
   describe('onMarkClick', () => {
+    // svg.createSVGPoint not supported by JSDom https://github.com/jsdom/jsdom/issues/300
+    it.skipIf(isJSDOM)('should be called when activating the focused mark with Enter', async () => {
+      const onMarkClick = vi.fn();
+      const { user } = render(
+        <LineChart
+          {...config}
+          series={[{ dataKey: 'v1', id: 's1', showMark: true }]}
+          xAxis={[{ scaleType: 'band', dataKey: 'x' }]}
+          experimentalFeatures={{ enableKeyboardClickEvents: true }}
+          onMarkClick={onMarkClick}
+        />,
+      );
+
+      await user.keyboard('{Tab}[ArrowRight][Enter]');
+
+      expect(onMarkClick).toHaveBeenCalledTimes(1);
+      expect(onMarkClick.mock.lastCall?.[1]).to.deep.equal({
+        type: 'line',
+        seriesId: 's1',
+        dataIndex: 0,
+      });
+    });
+
     it('should add cursor="pointer" to mark elements', () => {
       render(
         <LineChart

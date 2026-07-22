@@ -30,6 +30,8 @@ import type { ChartsTooltipSlotProps, ChartsTooltipSlots } from '../ChartsToolti
 import type { ChartsSlotProps, ChartsSlots } from '../internals/material';
 import type { ChartsToolbarSlotProps, ChartsToolbarSlots } from '../Toolbar';
 import { FocusedRadarMark } from './FocusedRadarMark';
+import type { RadarItemIdentifier } from '../models/seriesType/radar';
+import type { ItemActivationEvent } from '../models/featureFlags';
 
 export interface RadarChartSlots
   extends
@@ -49,13 +51,23 @@ export interface RadarChartSlotProps
 
 export interface RadarChartProps
   extends
-    Omit<RadarDataProviderProps, 'plugins'>,
+    Omit<RadarDataProviderProps, 'plugins' | 'onItemClick'>,
     Omit<RadarGridProps, 'classes'>,
     Omit<Partial<RadarAxisHighlightProps>, 'classes'>,
     Omit<ChartsOverlayProps, 'slots' | 'slotProps'>,
     Pick<ChartsWrapperProps, 'sx'>,
     Omit<ChartsSurfaceProps, 'sx'>,
-    Pick<RadarSeriesPlotProps, 'onAreaClick' | 'onMarkClick'> {
+    Pick<RadarSeriesPlotProps, 'onAreaClick'> {
+  /**
+   * Callback fired when a mark is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
+   * @param {RadarItemIdentifier} radarItemIdentifier The radar item identifier.
+   */
+  onMarkClick?: (
+    event: ItemActivationEvent<React.MouseEvent<SVGElement, MouseEvent>>,
+    radarItemIdentifier: Required<RadarItemIdentifier>,
+  ) => void;
   /**
    * If `true`, the legend is not rendered.
    */
@@ -322,8 +334,9 @@ RadarChart.propTypes /* remove-proptypes */ = {
    */
   onHighlightChange: PropTypes.func,
   /**
-   * Callback fired when a mark is clicked.
-   * @param {React.MouseEvent<SVGPathElement, MouseEvent>} event The event source of the callback.
+   * Callback fired when a mark is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
    * @param {RadarItemIdentifier} radarItemIdentifier The radar item identifier.
    */
   onMarkClick: PropTypes.func,

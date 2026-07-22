@@ -12,7 +12,14 @@ const seriesConfig = { sankey: sankeySeriesConfig };
 
 export interface SankeyDataProviderProps extends Omit<
   ChartsContainerProProps<'sankey', SankeyChartPluginSignatures>,
-  'plugins' | 'series' | 'slotProps' | 'slots' | 'dataset' | 'hideLegend' | 'skipAnimation'
+  | 'plugins'
+  | 'series'
+  | 'slotProps'
+  | 'slots'
+  | 'dataset'
+  | 'hideLegend'
+  | 'skipAnimation'
+  | 'onItemClick'
 > {
   children?: React.ReactNode;
   series: readonly SankeySeriesType[];

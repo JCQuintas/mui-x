@@ -3,7 +3,13 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { styled } from '@mui/material/styles';
-import type { SankeyLinkIdentifierWithData, SankeyNodeIdentifierWithData } from './sankey.types';
+import type { ItemActivationEvent, ItemActivationExtra } from '@mui/x-charts/models';
+import type {
+  SankeyLinkIdentifier,
+  SankeyLinkIdentifierWithData,
+  SankeyNodeIdentifier,
+  SankeyNodeIdentifierWithData,
+} from './sankey.types';
 import { useSankeyLayout, useSankeySeries } from '../hooks/useSankeySeries';
 import { useUtilityClasses } from './sankeyClasses';
 import type { SankeyClasses } from './sankeyClasses';
@@ -22,22 +28,24 @@ export interface SankeyPlotProps {
    */
   classes?: Partial<SankeyClasses>;
   /**
-   * Callback fired when a sankey item is clicked.
+   * Callback fired when a sankey node is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
-   * @param {SankeyNodeIdentifierWithData} node The sankey node identifier.
+   * @param {SankeyNodeIdentifierWithData} node The sankey node identifier. The computed `node` layout is absent on Enter or Space activation.
    */
   onNodeClick?: (
-    event: React.MouseEvent<SVGElement, MouseEvent>,
-    node: SankeyNodeIdentifierWithData,
+    event: ItemActivationEvent<React.MouseEvent<SVGElement, MouseEvent>>,
+    node: ItemActivationExtra<SankeyNodeIdentifierWithData, SankeyNodeIdentifier>,
   ) => void;
   /**
-   * Callback fired when a sankey item is clicked.
+   * Callback fired when a sankey link is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
-   * @param {SankeyLinkIdentifierWithData} link The sankey link identifier.
+   * @param {SankeyLinkIdentifierWithData} link The sankey link identifier. The computed `link` layout is absent on Enter or Space activation.
    */
   onLinkClick?: (
-    event: React.MouseEvent<SVGElement, MouseEvent>,
-    link: SankeyLinkIdentifierWithData,
+    event: ItemActivationEvent<React.MouseEvent<SVGElement, MouseEvent>>,
+    link: ItemActivationExtra<SankeyLinkIdentifierWithData, SankeyLinkIdentifier>,
   ) => void;
 }
 
@@ -95,15 +103,17 @@ SankeyPlot.propTypes /* remove-proptypes */ = {
    */
   className: PropTypes.string,
   /**
-   * Callback fired when a sankey item is clicked.
+   * Callback fired when a sankey link is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
-   * @param {SankeyLinkIdentifierWithData} link The sankey link identifier.
+   * @param {SankeyLinkIdentifierWithData} link The sankey link identifier. The computed `link` layout is absent on Enter or Space activation.
    */
   onLinkClick: PropTypes.func,
   /**
-   * Callback fired when a sankey item is clicked.
+   * Callback fired when a sankey node is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
-   * @param {SankeyNodeIdentifierWithData} node The sankey node identifier.
+   * @param {SankeyNodeIdentifierWithData} node The sankey node identifier. The computed `node` layout is absent on Enter or Space activation.
    */
   onNodeClick: PropTypes.func,
 } as any;

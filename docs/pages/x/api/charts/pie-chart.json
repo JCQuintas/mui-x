@@ -57,7 +57,13 @@
         "describedArgs": ["highlightedItem"]
       }
     },
-    "onItemClick": { "type": { "name": "func" } },
+    "onItemClick": {
+      "type": { "name": "func" },
+      "signature": {
+        "type": "function(event: React.MouseEvent<SVGPathElement, MouseEvent>, pieItemIdentifier: PieItemIdentifier, item: DefaultizedPieValueType) => void",
+        "describedArgs": ["event", "pieItemIdentifier", "item"]
+      }
+    },
     "onTooltipItemChange": {
       "type": { "name": "func" },
       "signature": {
