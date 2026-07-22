@@ -42,7 +42,7 @@ export interface BarChartProProps
     Omit<BarChartProps, 'apiRef' | 'slots' | 'slotProps' | 'seriesConfig' | 'plugins'>,
     Omit<
       ChartsContainerProProps<'bar', BarChartProPluginSignatures>,
-      'series' | 'slots' | 'slotProps' | 'sampling'
+      'series' | 'slots' | 'slotProps' | 'sampling' | 'onItemClick'
     > {
   /**
    * Sampling method used to render large datasets when zoomed out.
@@ -417,7 +417,8 @@ BarChartPro.propTypes /* remove-proptypes */ = {
    */
   onHighlightedAxisChange: PropTypes.func,
   /**
-   * Callback fired when a bar item is clicked.
+   * Callback fired when a bar item is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    * @param {MouseEvent} event The event source of the callback.
    * @param {BarItemIdentifier} barItemIdentifier The bar item identifier.
    */

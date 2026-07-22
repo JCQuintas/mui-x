@@ -150,11 +150,13 @@ export const useBarChartProps = (props: UseBarChartProps) => {
       axisHighlight?.y === 'none',
     skipAnimation,
     brushConfig,
+    // Forwarded so keyboard activation can reach it. Pointer clicks stay on the plot component.
+    onItemClick,
     plugins: BAR_CHART_PLUGINS,
   };
 
   const barPlotProps: BarPlotProps = {
-    onItemClick,
+    onItemClick: onItemClick as BarPlotProps['onItemClick'],
     slots,
     slotProps,
     borderRadius,

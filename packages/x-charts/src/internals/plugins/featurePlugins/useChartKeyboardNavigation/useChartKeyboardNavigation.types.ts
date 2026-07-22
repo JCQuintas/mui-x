@@ -3,6 +3,8 @@ import type { UseChartInteractionSignature } from '../useChartInteraction';
 import type { UseChartCartesianAxisSignature } from '../useChartCartesianAxis';
 import type { UseChartHighlightSignature } from '../useChartHighlight';
 import type { UseChartClosestPointSignature } from '../useChartClosestPoint';
+import type { UseChartItemActivationSignature } from '../useChartItemActivation';
+import type { UseChartItemClickSignature } from '../useChartItemClick';
 import type { FocusedItemIdentifier } from '../../../../models/seriesType';
 import type { ChartSeriesType } from '../../../../models/seriesType/config';
 
@@ -42,5 +44,7 @@ export type UseChartKeyboardNavigationSignature = ChartPluginSignature<{
     UseChartHighlightSignature<ChartSeriesType>,
     UseChartCartesianAxisSignature,
     UseChartClosestPointSignature,
+    UseChartItemActivationSignature,
+    UseChartItemClickSignature,
   ];
 }>;

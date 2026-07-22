@@ -12,9 +12,10 @@ import { ChartsAxisHighlight } from '@mui/x-charts/ChartsAxisHighlight';
 import type { ChartsAxisHighlightProps } from '@mui/x-charts/ChartsAxisHighlight';
 import { ChartsAxis } from '@mui/x-charts/ChartsAxis';
 import { ChartsWrapper } from '@mui/x-charts/ChartsWrapper';
+import type { ItemActivationEvent } from '@mui/x-charts/models';
 import { FunnelPlot } from './FunnelPlot';
 import type { FunnelPlotProps } from './FunnelPlot';
-import type { FunnelSeriesType } from './funnel.types';
+import type { FunnelItemIdentifier, FunnelSeriesType } from './funnel.types';
 import { useFunnelChartProps } from './useFunnelChartProps';
 import type { ChartsContainerProProps } from '../ChartsContainerPro';
 import { funnelSeriesConfig } from './seriesConfig';
@@ -43,8 +44,9 @@ export interface FunnelChartProps
       | 'radiusAxis'
       | 'slots'
       | 'slotProps'
+      | 'onItemClick'
     >,
-    Omit<FunnelPlotProps, 'slots' | 'slotProps'>,
+    Omit<FunnelPlotProps, 'slots' | 'slotProps' | 'onItemClick'>,
     Omit<ChartsOverlayProps, 'slots' | 'slotProps'>,
     FunnelChartSlotExtension {
   /**
@@ -71,6 +73,16 @@ export interface FunnelChartProps
    *
    */
   axisHighlight?: ChartsAxisHighlightProps;
+  /**
+   * Callback fired when a funnel item is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
+   * @param {FunnelItemIdentifier} funnelItemIdentifier The funnel item identifier.
+   */
+  onItemClick?: (
+    event: ItemActivationEvent<React.MouseEvent<SVGElement, MouseEvent>>,
+    funnelItemIdentifier: FunnelItemIdentifier,
+  ) => void;
 }
 
 const seriesConfig = { funnel: funnelSeriesConfig };
@@ -408,7 +420,8 @@ FunnelChart.propTypes /* remove-proptypes */ = {
    */
   onHighlightChange: PropTypes.func,
   /**
-   * Callback fired when a funnel item is clicked.
+   * Callback fired when a funnel item is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    * @param {React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
    * @param {FunnelItemIdentifier} funnelItemIdentifier The funnel item identifier.
    */

@@ -93,7 +93,7 @@
       }
     },
     "onItemClick": {
-      "description": "Callback fired when a bar or range bar item is clicked.",
+      "description": "Callback fired when a bar or range bar item is activated. Activation with the Enter and Space keys requires the <code>enableKeyboardClickEvents</code> experimental feature.",
       "typeDescriptions": {
         "event": { "name": "event", "description": "The event source of the callback." },
         "itemIdentifier": { "name": "itemIdentifier", "description": "The item identifier." }

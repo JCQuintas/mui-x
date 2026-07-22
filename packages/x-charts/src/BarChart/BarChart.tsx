@@ -9,7 +9,8 @@ import { BarPlot } from './BarPlot';
 import type { BarPlotProps, BarPlotSlotProps, BarPlotSlots } from './BarPlot';
 import type { ChartsContainerProps } from '../ChartsContainer';
 import { ChartsAxis } from '../ChartsAxis';
-import type { BarSeriesType } from '../models/seriesType/bar';
+import type { BarSeriesType, BarItemIdentifier } from '../models/seriesType/bar';
+import type { ItemActivationEvent } from '../models/featureFlags';
 import { ChartsTooltip } from '../ChartsTooltip';
 import type {
   ChartsTooltipSlots,
@@ -60,14 +61,27 @@ export type BarSeries = MakeOptional<BarSeriesType, 'type'>;
 
 export interface BarChartProps
   extends
-    Omit<ChartsContainerProps<'bar', BarChartPluginSignatures>, 'series' | 'plugins' | 'zAxis'>,
-    Omit<BarPlotProps, 'slots' | 'slotProps'>,
+    Omit<
+      ChartsContainerProps<'bar', BarChartPluginSignatures>,
+      'series' | 'plugins' | 'zAxis' | 'onItemClick'
+    >,
+    Omit<BarPlotProps, 'slots' | 'slotProps' | 'onItemClick'>,
     Omit<ChartsOverlayProps, 'slots' | 'slotProps'> {
   /**
    * The series to display in the bar chart.
    * An array of [[BarSeries]] objects.
    */
   series: ReadonlyArray<BarSeries>;
+  /**
+   * Callback fired when a bar item is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {MouseEvent} event The event source of the callback.
+   * @param {BarItemIdentifier} barItemIdentifier The bar item identifier.
+   */
+  onItemClick?: (
+    event: ItemActivationEvent<MouseEvent>,
+    barItemIdentifier: BarItemIdentifier,
+  ) => void;
   /**
    * Option to display a cartesian grid in the background.
    */
@@ -401,9 +415,9 @@ BarChart.propTypes /* remove-proptypes */ = {
    */
   onHighlightedAxisChange: PropTypes.func,
   /**
-   * Callback fired when a bar item is clicked.
-   * @param {MouseEvent | React.MouseEvent<SVGElement, MouseEvent>} event The event source of the callback.
-   *        It is a native MouseEvent for `svg-batch` renderer and a React MouseEvent for `svg-single` renderer.
+   * Callback fired when a bar item is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
+   * @param {MouseEvent} event The event source of the callback.
    * @param {BarItemIdentifier} barItemIdentifier The bar item identifier.
    */
   onItemClick: PropTypes.func,

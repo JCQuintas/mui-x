@@ -7,6 +7,7 @@ import type {
   BarChartProSlotProps,
   BarChartProSlots,
 } from '@mui/x-charts-pro/BarChartPro';
+import type { ItemActivationEvent } from '@mui/x-charts/models';
 import { ChartsLegend } from '@mui/x-charts/ChartsLegend';
 import { ChartsToolbarPro } from '@mui/x-charts-pro/ChartsToolbarPro';
 import { ChartsTooltip } from '@mui/x-charts/ChartsTooltip';
@@ -51,7 +52,7 @@ export interface BarChartPremiumProps
     >,
     Omit<
       ChartsContainerPremiumProps<'bar', BarChartPremiumPluginSignatures>,
-      'series' | 'slots' | 'slotProps' | 'sampling'
+      'series' | 'slots' | 'slotProps' | 'sampling' | 'onItemClick'
     >,
     Pick<BarPlotPremiumProps, 'renderer'> {
   /**
@@ -65,11 +66,15 @@ export interface BarChartPremiumProps
    */
   slotProps?: BarChartPremiumSlotProps;
   /**
-   * Callback fired when a bar or range bar item is clicked.
+   * Callback fired when a bar or range bar item is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    * @param {MouseEvent} event The event source of the callback.
    * @param {BarItemIdentifier | RangeBarItemIdentifier} itemIdentifier The item identifier.
    */
-  onItemClick?(event: MouseEvent, itemIdentifier: BarItemIdentifier | RangeBarItemIdentifier): void;
+  onItemClick?(
+    event: ItemActivationEvent<MouseEvent>,
+    itemIdentifier: BarItemIdentifier | RangeBarItemIdentifier,
+  ): void;
 
   /**
    * The series to display in the bar chart.
@@ -452,7 +457,8 @@ BarChartPremium.propTypes /* remove-proptypes */ = {
    */
   onHighlightedAxisChange: PropTypes.func,
   /**
-   * Callback fired when a bar or range bar item is clicked.
+   * Callback fired when a bar or range bar item is activated.
+   * Activation with the Enter and Space keys requires the `enableKeyboardClickEvents` experimental feature.
    * @param {MouseEvent} event The event source of the callback.
    * @param {BarItemIdentifier | RangeBarItemIdentifier} itemIdentifier The item identifier.
    */

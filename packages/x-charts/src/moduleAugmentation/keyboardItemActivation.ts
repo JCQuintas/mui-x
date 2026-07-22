@@ -1,6 +1,6 @@
 declare module '@mui/x-charts/models' {
   interface ChartsTypeFeatureFlags {
-    itemActivationEvent: MouseEvent | KeyboardEvent;
+    itemActivationEvent: true;
   }
 }
 

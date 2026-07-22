@@ -166,11 +166,13 @@ export const useFunnelChartProps = (props: FunnelChartProps) => {
     highlightedItem,
     onHighlightChange,
     apiRef,
+    // Forwarded so keyboard activation can reach it. Pointer clicks stay on the plot component.
+    onItemClick,
     plugins: FUNNEL_CHART_PLUGINS,
   };
 
   const funnelPlotProps: FunnelPlotProps = {
-    onItemClick,
+    onItemClick: onItemClick as FunnelPlotProps['onItemClick'],
     slots,
     slotProps,
   };

@@ -6,7 +6,7 @@ import { selectorChartExperimentalFeaturesState } from '../../corePlugins/useCha
 import { selectorChartDefaultizedSeries } from '../../corePlugins/useChartSeries/useChartSeries.selectors';
 import { selectorChartSeriesConfig } from '../../corePlugins/useChartSeriesConfig';
 import type { ChartPlugin } from '../../models';
-import type { FocusedItemUpdater, KeyboardActivation } from './keyboardFocusHandler.types';
+import type { FocusedItemUpdater } from './keyboardFocusHandler.types';
 import type { UseChartKeyboardNavigationSignature } from './useChartKeyboardNavigation.types';
 
 export const useChartKeyboardNavigation: ChartPlugin<UseChartKeyboardNavigationSignature> = ({
@@ -73,29 +73,30 @@ export const useChartKeyboardNavigation: ChartPlugin<UseChartKeyboardNavigationS
         }
       }
 
-      const keyboardHandlerResult = seriesConfig[seriesType]?.keyboardFocusHandler?.(event) as
-        FocusedItemUpdater<typeof seriesType> | KeyboardActivation | undefined;
-
-      if (!keyboardHandlerResult) {
-        return;
-      }
-
-      if (keyboardHandlerResult === 'activate') {
+      if (event.key === ' ' || event.key === 'Enter') {
         if (
           selectorChartExperimentalFeaturesState(store.state, 'enableKeyboardClickEvents') &&
           store.state.keyboardNavigation.isFocused &&
-          newFocusedItem?.type === 'scatter'
+          newFocusedItem
         ) {
+          // Repeats keep preventing the default scroll, but only fire the callback once.
           event.preventDefault();
 
           if (!event.repeat) {
-            onItemClick?.(event, newFocusedItem);
+            (onItemClick as ((...args: any[]) => void) | undefined)?.(event, newFocusedItem);
           }
         }
         return;
       }
 
-      newFocusedItem = keyboardHandlerResult(newFocusedItem, store.state);
+      const calculateFocusedItem = seriesConfig[seriesType]?.keyboardFocusHandler?.(event) as
+        FocusedItemUpdater<typeof seriesType> | undefined;
+
+      if (!calculateFocusedItem) {
+        return;
+      }
+
+      newFocusedItem = calculateFocusedItem(newFocusedItem, store.state);
 
       if (newFocusedItem !== store.state.keyboardNavigation.item) {
         event.preventDefault();
