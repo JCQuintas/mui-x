@@ -290,6 +290,8 @@ export class AdapterDayjs implements MuiPickersAdapter<string> {
    * `daysInMonth()` is unusable on such a value because it derives from the equally broken
    * `endOf('month')`, hence computing it on a plain UTC value instead.
    * See https://github.com/mui/mui-x/issues/23163
+   * The `startOf` / `endOf` / `getDaysInMonth` breakage is tracked in
+   * https://github.com/mui/mui-x/issues/23301
    */
   private restoreDayOfMonth = (value: Dayjs, reference: Dayjs) => {
     const timezone = this.getTimezone(value);
