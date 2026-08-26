@@ -465,6 +465,36 @@ When a value has to cross between types, `Temporal` provides the conversions:
 
 A `Temporal.PlainTime` carries no date, so it needs a reference day to become a `Temporal.ZonedDateTime`.
 
+#### Measuring the length of a range
+
+A range picker holds two points in time, not a length, so its value stays a pair of the adapter's own type.
+To get the length of the range, ask the start value how far it is from the end with `until`, which returns a `Temporal.Duration`:
+
+```tsx
+import { AdapterTemporalPlainTime } from '@mui/x-date-pickers/AdapterTemporalPlainTime';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { TimeRangePicker } from '@mui/x-date-pickers-pro/TimeRangePicker';
+
+function Shift() {
+  const [range, setRange] = React.useState<
+    [Temporal.PlainTime | null, Temporal.PlainTime | null]
+  >([null, null]);
+
+  const [start, end] = range;
+  const worked = start && end ? start.until(end, { largestUnit: 'hour' }) : null;
+
+  return (
+    <LocalizationProvider dateAdapter={AdapterTemporalPlainTime}>
+      <TimeRangePicker value={range} onChange={setRange} />
+      {worked && <p>{`${worked.hours}h ${worked.minutes}m`}</p>}
+    </LocalizationProvider>
+  );
+}
+```
+
+`until` is available on every Temporal type the adapters use.
+A `Temporal.PlainTime` measures in hours and smaller units, while the date-aware types can also report days, months and years through the `largestUnit` option.
+
 ## More advanced examples
 
 :::info
