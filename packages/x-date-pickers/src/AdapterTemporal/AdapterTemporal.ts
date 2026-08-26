@@ -1,94 +1,12 @@
-import type {
-  AdapterFormats,
-  AdapterOptions,
-  DateBuilderReturnType,
-  FieldFormatTokenMap,
-  MuiPickersAdapter,
-  PickersTimezone,
-} from '../models';
-
-const formatTokenMap: FieldFormatTokenMap = {
-  // Year
-  yy: 'year',
-  yyyy: { sectionType: 'year', contentType: 'digit', maxLength: 4 },
-
-  // Month
-  M: { sectionType: 'month', contentType: 'digit', maxLength: 2 },
-  MM: 'month',
-  MMM: { sectionType: 'month', contentType: 'letter' },
-  MMMM: { sectionType: 'month', contentType: 'letter' },
-
-  // Day of the month
-  d: { sectionType: 'day', contentType: 'digit', maxLength: 2 },
-  dd: 'day',
-
-  // Day of the week
-  EE: { sectionType: 'weekDay', contentType: 'letter' },
-  EEE: { sectionType: 'weekDay', contentType: 'letter' },
-  EEEE: { sectionType: 'weekDay', contentType: 'letter' },
-
-  // Meridiem
-  a: 'meridiem',
-
-  // Hours
-  H: { sectionType: 'hours', contentType: 'digit', maxLength: 2 },
-  HH: 'hours',
-  h: { sectionType: 'hours', contentType: 'digit', maxLength: 2 },
-  hh: 'hours',
-
-  // Minutes
-  m: { sectionType: 'minutes', contentType: 'digit', maxLength: 2 },
-  mm: 'minutes',
-
-  // Seconds
-  s: { sectionType: 'seconds', contentType: 'digit', maxLength: 2 },
-  ss: 'seconds',
-};
-
-const defaultFormats: AdapterFormats = {
-  year: 'yyyy',
-  month: 'MMMM',
-  monthShort: 'MMM',
-  dayOfMonth: 'd',
-  dayOfMonthFull: 'd',
-  weekday: 'EEEE',
-  weekdayShort: 'EE',
-  hours24h: 'HH',
-  hours12h: 'hh',
-  meridiem: 'a',
-  minutes: 'mm',
-  seconds: 'ss',
-
-  fullDate: 'MMM d, yyyy',
-  keyboardDate: 'MM/dd/yyyy',
-  shortDate: 'MMM d',
-  normalDate: 'd MMMM',
-  normalDateWithWeekday: 'EEE, MMM d',
-
-  fullTime12h: 'hh:mm a',
-  fullTime24h: 'HH:mm',
-
-  keyboardDateTime12h: 'MM/dd/yyyy hh:mm a',
-  keyboardDateTime24h: 'MM/dd/yyyy HH:mm',
-};
-
-declare module '@mui/x-date-pickers/models' {
-  interface PickerValidDateLookup {
-    temporal: Temporal.ZonedDateTime;
-  }
-}
+import type { DateBuilderReturnType, MuiPickersAdapter, PickersTimezone } from '../models';
+import { AdapterTemporalBase, markInvalid } from './AdapterTemporalBase';
+import type { TemporalFields } from './AdapterTemporalBase';
 
 /**
  * Logical timezone per value: `Temporal` cannot distinguish `system` from a named zone resolving to
  * the same offset. Values built outside the adapter fall back to their own `timeZoneId`.
  */
 const logicalTimezones = new WeakMap<Temporal.ZonedDateTime, PickersTimezone>();
-
-/**
- * Invalid values, tracked by identity: `Temporal` has no invalid instance, and the Pickers need a
- * non-null value to report `invalidDate` (`null` means empty).
- */
-const invalidDates = new WeakSet<Temporal.ZonedDateTime>();
 
 /**
  * The timezone used when the `default` timezone is requested and no explicit default has been set.
@@ -106,76 +24,20 @@ export function setDefaultTimezone(timezone?: PickersTimezone) {
   defaultTimezone = timezone ?? 'system';
 }
 
-function pad(value: number, length: number): string {
-  return String(Math.abs(value)).padStart(length, '0');
-}
-
-function to12Hours(hour: number): number {
-  const value = hour % 12;
-  return value === 0 ? 12 : value;
-}
-
-// Matches escaped sections (wrapped in single quotes) and the supported tokens, longest first.
-const FORMAT_TOKEN_REGEXP =
-  /'[^']*'|MMMM|MMM|MM|M|EEEE|EEE|EE|yyyy|yy|dd|d|HH|H|hh|h|mm|m|ss|s|SSS|a/g;
-
-// Token descriptors for `parse`: [token, capture group, field]. Longest tokens first.
-const PARSE_TOKENS: [string, string, string][] = [
-  ['yyyy', '(\\d{4})', 'year'],
-  ['yy', '(\\d{2})', 'year2'],
-  ['MMMM', '(\\p{L}+)', 'monthName'],
-  ['MMM', '(\\p{L}+)', 'monthName'],
-  ['MM', '(\\d{2})', 'month'],
-  ['M', '(\\d{1,2})', 'month'],
-  ['dd', '(\\d{2})', 'day'],
-  ['d', '(\\d{1,2})', 'day'],
-  ['EEEE', '(\\p{L}+)', 'weekdayName'],
-  ['EEE', '(\\p{L}+)', 'weekdayName'],
-  ['EE', '(\\p{L}+)', 'weekdayName'],
-  ['HH', '(\\d{2})', 'hour'],
-  ['H', '(\\d{1,2})', 'hour'],
-  ['hh', '(\\d{2})', 'hour12'],
-  ['h', '(\\d{1,2})', 'hour12'],
-  ['mm', '(\\d{2})', 'minute'],
-  ['m', '(\\d{1,2})', 'minute'],
-  ['ss', '(\\d{2})', 'second'],
-  ['s', '(\\d{1,2})', 'second'],
-  ['SSS', '(\\d{3})', 'millisecond'],
-  ['a', '(AM|PM|am|pm)', 'meridiem'],
-];
-
-export class AdapterTemporal implements MuiPickersAdapter<string> {
-  public isMUIAdapter = true;
+/**
+ * Adapter for `Temporal.ZonedDateTime`, the only Temporal type that carries a timezone.
+ * Use it when the value is an exact point in time. For values that are conceptually timezone-less,
+ * prefer `AdapterTemporalPlainDate`, `AdapterTemporalPlainTime` or `AdapterTemporalPlainDateTime`.
+ */
+export class AdapterTemporal
+  extends AdapterTemporalBase<Temporal.ZonedDateTime>
+  implements MuiPickersAdapter<string>
+{
+  public lib = 'temporal';
 
   public isTimezoneCompatible = true;
 
-  public lib = 'temporal';
-
-  public locale: string;
-
-  public formats: AdapterFormats;
-
-  public escapedCharacters = { start: "'", end: "'" };
-
-  public formatTokenMap = formatTokenMap;
-
-  constructor({ locale, formats }: AdapterOptions<string, never> = {}) {
-    if (typeof Temporal === 'undefined') {
-      throw new Error(
-        `MUI X Date Pickers: The \`Temporal\` API is not available in this environment.
-The \`AdapterTemporal\` adapter relies on the global \`Temporal\` object, which your runtime does not provide natively.
-Load a Temporal polyfill (for example \`import 'temporal-polyfill/global'\`) before creating the adapter.
-See https://mui.com/x/react-date-pickers/date-localization/ for more details.`,
-      );
-    }
-
-    this.locale = locale || 'en-US';
-    this.formats = { ...defaultFormats, ...formats };
-  }
-
-  private getSystemTimezone = (): string => {
-    return Temporal.Now.timeZoneId();
-  };
+  private getSystemTimezone = (): string => Temporal.Now.timeZoneId();
 
   /**
    * Resolve a `PickersTimezone` into the concrete IANA zone to use with `Temporal`, and the logical
@@ -204,20 +66,51 @@ See https://mui.com/x/react-date-pickers/date-localization/ for more details.`,
     return zonedDateTime;
   };
 
-  /** Fresh instance each call so invalid values keep their own logical timezone. */
-  private createInvalidDate = (timezone: PickersTimezone): Temporal.ZonedDateTime => {
-    const value = Temporal.Instant.fromEpochMilliseconds(0).toZonedDateTimeISO('UTC');
-    invalidDates.add(value);
-    return this.createDate(value, timezone);
+  protected createBlankValue = (): Temporal.ZonedDateTime =>
+    Temporal.Instant.fromEpochMilliseconds(0).toZonedDateTimeISO('UTC');
+
+  protected createInvalidValue = (timezone: PickersTimezone = 'system'): Temporal.ZonedDateTime =>
+    this.createDate(markInvalid(this.createBlankValue()), timezone);
+
+  protected getFields = (value: Temporal.ZonedDateTime): TemporalFields => ({
+    year: value.year,
+    month: value.month,
+    day: value.day,
+    hour: value.hour,
+    minute: value.minute,
+    second: value.second,
+    millisecond: value.millisecond,
+    dayOfWeek: value.dayOfWeek,
+  });
+
+  protected fromFields = (
+    fields: TemporalFields,
+    timezone: PickersTimezone,
+  ): Temporal.ZonedDateTime | null => {
+    const { zone, logical } = this.resolveTimezone(timezone);
+    try {
+      const plainDateTime = Temporal.PlainDateTime.from(
+        {
+          year: fields.year,
+          month: fields.month,
+          day: fields.day,
+          hour: fields.hour,
+          minute: fields.minute,
+          second: fields.second,
+          millisecond: fields.millisecond,
+        },
+        { overflow: 'reject' },
+      );
+      return this.createDate(plainDateTime.toZonedDateTime(zone), logical);
+    } catch (error) {
+      return null;
+    }
   };
 
-  /**
-   * Apply an operation to a valid value, keeping its logical timezone. Invalid values are returned
-   * untouched so operations propagate invalidity instead of throwing.
-   */
-  private mapValue = (
+  /** Derived values keep the logical timezone of the value they came from. */
+  protected mapValue = (
     value: Temporal.ZonedDateTime,
-    fn: (zonedDateTime: Temporal.ZonedDateTime) => Temporal.ZonedDateTime,
+    fn: (value: Temporal.ZonedDateTime) => Temporal.ZonedDateTime,
   ): Temporal.ZonedDateTime => {
     if (!this.isValid(value)) {
       return value;
@@ -225,38 +118,30 @@ See https://mui.com/x/react-date-pickers/date-localization/ for more details.`,
     return this.createDate(fn(value), this.getTimezone(value));
   };
 
-  private intlFormat = (
-    zdt: Temporal.ZonedDateTime,
-    options: Intl.DateTimeFormatOptions,
-  ): string => {
-    return new Intl.DateTimeFormat(this.locale, {
-      timeZone: zdt.timeZoneId,
-      ...options,
-    }).format(new Date(zdt.epochMilliseconds));
-  };
-
-  private getMeridiemString = (zdt: Temporal.ZonedDateTime): string => {
-    const parts = new Intl.DateTimeFormat(this.locale, {
-      timeZone: zdt.timeZoneId,
-      hour: 'numeric',
-      hour12: true,
-    }).formatToParts(new Date(zdt.epochMilliseconds));
-    const dayPeriod = parts.find((part) => part.type === 'dayPeriod');
-    if (dayPeriod) {
-      return dayPeriod.value;
+  protected withFields = (
+    value: Temporal.ZonedDateTime,
+    fields: Record<string, number>,
+  ): Temporal.ZonedDateTime => {
+    if (!this.isValid(value)) {
+      return value;
     }
-    /* v8 ignore next */
-    return zdt.hour < 12 ? 'AM' : 'PM';
+    const timezone = this.getTimezone(value);
+    try {
+      return this.createDate(value.with(fields), timezone);
+    } catch (error) {
+      return this.createInvalidValue(timezone);
+    }
   };
 
-  private getFirstDayOfWeek = (): number => {
-    const locale = new Intl.Locale(this.locale);
-    // `getWeekInfo` is the standard method, `weekInfo` a non-standard fallback used by some engines.
-    const weekInfo =
-      // @ts-ignore `getWeekInfo` is not yet in the TS lib.
-      typeof locale.getWeekInfo === 'function' ? locale.getWeekInfo() : (locale as any).weekInfo;
-    // `firstDay` uses 1 (Monday) to 7 (Sunday), the same convention as `Temporal`'s `dayOfWeek`.
-    return weekInfo?.firstDay ?? 7;
+  public getTimezone = (value: Temporal.ZonedDateTime): string =>
+    logicalTimezones.get(value) ?? value.timeZoneId;
+
+  public setTimezone = (value: Temporal.ZonedDateTime, timezone: PickersTimezone) => {
+    const { zone, logical } = this.resolveTimezone(timezone);
+    if (!this.isValid(value)) {
+      return this.createInvalidValue(logical);
+    }
+    return this.createDate(value.withTimeZone(zone), logical);
   };
 
   public date = <T extends string | null | undefined>(
@@ -287,27 +172,9 @@ See https://mui.com/x/react-date-pickers/date-localization/ for more details.`,
         const plainDateTime = Temporal.PlainDateTime.from(value);
         return this.createDate(plainDateTime.toZonedDateTime(zone), logical) as unknown as R;
       } catch (innerError) {
-        return this.createInvalidDate(logical) as unknown as R;
+        return this.createInvalidValue(logical) as unknown as R;
       }
     }
-  };
-
-  public getInvalidDate = () => this.createInvalidDate('system');
-
-  public getTimezone = (value: Temporal.ZonedDateTime): string => {
-    return logicalTimezones.get(value) ?? value.timeZoneId;
-  };
-
-  public setTimezone = (value: Temporal.ZonedDateTime, timezone: PickersTimezone) => {
-    const { zone, logical } = this.resolveTimezone(timezone);
-    if (!this.isValid(value)) {
-      return this.createInvalidDate(logical);
-    }
-    return this.createDate(value.withTimeZone(zone), logical);
-  };
-
-  public toJsDate = (value: Temporal.ZonedDateTime) => {
-    return this.isValid(value) ? new Date(value.epochMilliseconds) : new Date(NaN);
   };
 
   public parse = (value: string, format: string): Temporal.ZonedDateTime | null => {
@@ -315,551 +182,52 @@ See https://mui.com/x/react-date-pickers/date-localization/ for more details.`,
       return null;
     }
 
-    const { zone, logical } = this.resolveTimezone('default');
-    const fields: string[] = [];
-    let regexString = '^';
+    const { logical } = this.resolveTimezone('default');
+    const parsed = this.parseFields(value, format);
 
-    let index = 0;
-    while (index < format.length) {
-      // Escaped sections (wrapped in single quotes) are matched literally, not tokenized.
-      if (format[index] === "'") {
-        const end = format.indexOf("'", index + 1);
-        const inner = end === -1 ? format.slice(index + 1) : format.slice(index + 1, end);
-        regexString += inner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        index = end === -1 ? format.length : end + 1;
-        continue;
-      }
-
-      const remaining = format.slice(index);
-      const token = PARSE_TOKENS.find((candidate) => remaining.startsWith(candidate[0]));
-
-      if (token) {
-        regexString += token[1];
-        fields.push(token[2]);
-        index += token[0].length;
-      } else {
-        regexString += format[index].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        index += 1;
-      }
-    }
-    regexString += '$';
-
-    const match = value.match(new RegExp(regexString, 'u'));
-    if (!match) {
-      return this.createInvalidDate(logical);
+    if (parsed === null || parsed.incompleteDate) {
+      return this.createInvalidValue(logical);
     }
 
-    const parsed: Record<string, string> = {};
-    fields.forEach((field, fieldIndex) => {
-      parsed[field] = match[fieldIndex + 1];
-    });
-
-    let month: number | undefined;
-    if (parsed.month !== undefined) {
-      month = Number(parsed.month);
-    } else if (parsed.monthName !== undefined) {
-      month = this.resolveMonthName(parsed.monthName);
-      if (month === undefined) {
-        return this.createInvalidDate(logical);
-      }
-    }
-
-    let year: number | undefined;
-    if (parsed.year !== undefined) {
-      year = Number(parsed.year);
-    } else if (parsed.year2 !== undefined) {
-      year = 2000 + Number(parsed.year2);
-    }
-
-    // A day without a month is an incomplete date. Other libraries (for example Luxon) treat it as
-    // invalid, so the field keeps the typed value instead of merging it into the reference date.
-    if (parsed.day !== undefined && month === undefined) {
-      return this.createInvalidDate(logical);
-    }
-
-    const isPM = parsed.meridiem?.toUpperCase() === 'PM';
-    let hour = parsed.hour !== undefined ? Number(parsed.hour) : 0;
-    if (parsed.hour12 !== undefined) {
-      hour = (Number(parsed.hour12) % 12) + (isPM ? 12 : 0);
-    } else if (parsed.meridiem !== undefined && parsed.hour === undefined) {
-      // Meridiem without an explicit hour (for example editing a lone meridiem section).
-      hour = isPM ? 12 : 0;
-    }
-
-    try {
-      const plainDateTime = Temporal.PlainDateTime.from(
+    return (
+      this.fromFields(
         {
-          year: year ?? 1970,
-          month: month ?? 1,
-          day: parsed.day !== undefined ? Number(parsed.day) : 1,
-          hour,
-          minute: parsed.minute !== undefined ? Number(parsed.minute) : 0,
-          second: parsed.second !== undefined ? Number(parsed.second) : 0,
-          millisecond: parsed.millisecond !== undefined ? Number(parsed.millisecond) : 0,
+          year: parsed.year ?? 1970,
+          month: parsed.month ?? 1,
+          day: parsed.day ?? 1,
+          hour: parsed.hour ?? 0,
+          minute: parsed.minute ?? 0,
+          second: parsed.second ?? 0,
+          millisecond: parsed.millisecond ?? 0,
+          dayOfWeek: 1,
         },
-        { overflow: 'reject' },
-      );
-      return this.createDate(plainDateTime.toZonedDateTime(zone), logical);
-    } catch (error) {
-      return this.createInvalidDate(logical);
-    }
-  };
-
-  /**
-   * Resolve a localized month name (long or short) to its 1-based month number.
-   */
-  private resolveMonthName = (name: string): number | undefined => {
-    const target = name.toLocaleLowerCase(this.locale);
-    for (let month = 1; month <= 12; month += 1) {
-      const date = new Date(Date.UTC(2020, month - 1, 1));
-      const isMatch = (['long', 'short'] as const).some(
-        (style) =>
-          new Intl.DateTimeFormat(this.locale, { month: style, timeZone: 'UTC' })
-            .format(date)
-            .toLocaleLowerCase(this.locale) === target,
-      );
-      if (isMatch) {
-        return month;
-      }
-    }
-    return undefined;
-  };
-
-  public getCurrentLocaleCode = () => {
-    return this.locale;
-  };
-
-  public is12HourCycleInCurrentLocale = () => {
-    return Boolean(
-      new Intl.DateTimeFormat(this.locale, { hour: 'numeric' }).resolvedOptions().hour12,
+        'default',
+      ) ?? this.createInvalidValue(logical)
     );
   };
 
-  public expandFormat = (format: string) => {
-    // The adapter only uses concrete tokens, so there is nothing to expand.
-    return format;
-  };
-
-  public isValid = (value: Temporal.ZonedDateTime | null): value is Temporal.ZonedDateTime => {
-    return value != null && !invalidDates.has(value);
-  };
-
-  public format = (value: Temporal.ZonedDateTime, formatKey: keyof AdapterFormats) => {
-    return this.formatByString(value, this.formats[formatKey]);
-  };
-
-  public formatByString = (value: Temporal.ZonedDateTime, format: string) => {
-    if (!this.isValid(value)) {
-      return 'Invalid Date';
-    }
-    const zdt = value;
-    return format.replace(FORMAT_TOKEN_REGEXP, (token) => {
-      if (token[0] === "'") {
-        return token.slice(1, -1);
-      }
-      switch (token) {
-        case 'yyyy':
-          return pad(zdt.year, 4);
-        case 'yy':
-          return pad(zdt.year % 100, 2);
-        case 'MMMM':
-          return this.intlFormat(zdt, { month: 'long' });
-        case 'MMM':
-          return this.intlFormat(zdt, { month: 'short' });
-        case 'MM':
-          return pad(zdt.month, 2);
-        case 'M':
-          return String(zdt.month);
-        case 'dd':
-          return pad(zdt.day, 2);
-        case 'd':
-          return String(zdt.day);
-        case 'EEEE':
-          return this.intlFormat(zdt, { weekday: 'long' });
-        case 'EEE':
-          return this.intlFormat(zdt, { weekday: 'short' });
-        case 'EE':
-          return this.intlFormat(zdt, { weekday: 'short' }).slice(0, 2);
-        case 'HH':
-          return pad(zdt.hour, 2);
-        case 'H':
-          return String(zdt.hour);
-        case 'hh':
-          return pad(to12Hours(zdt.hour), 2);
-        case 'h':
-          return String(to12Hours(zdt.hour));
-        case 'mm':
-          return pad(zdt.minute, 2);
-        case 'm':
-          return String(zdt.minute);
-        case 'ss':
-          return pad(zdt.second, 2);
-        case 's':
-          return String(zdt.second);
-        case 'SSS':
-          return pad(zdt.millisecond, 3);
-        case 'a':
-          return this.getMeridiemString(zdt);
-        /* v8 ignore next 2 */
-        default:
-          return token;
-      }
-    });
-  };
-
-  public formatNumber = (numberToFormat: string) => {
-    return numberToFormat;
-  };
-
-  public isEqual = (
-    value: Temporal.ZonedDateTime | null,
-    comparing: Temporal.ZonedDateTime | null,
-  ) => {
-    if (value === null && comparing === null) {
-      return true;
-    }
-    if (value === null || comparing === null) {
-      return false;
-    }
-    const isValueValid = this.isValid(value);
-    const isComparingValid = this.isValid(comparing);
-    if (!isValueValid || !isComparingValid) {
-      return !isValueValid && !isComparingValid;
-    }
-    return value.epochNanoseconds === comparing.epochNanoseconds;
-  };
+  public toJsDate = (value: Temporal.ZonedDateTime) =>
+    this.isValid(value) ? new Date(value.epochMilliseconds) : new Date(NaN);
 
   /**
-   * Represent `comparing` in the timezone of `value` so that field comparisons are done in the same zone.
+   * `Temporal`'s `startOfDay` resolves days where midnight does not exist (DST transitions),
+   * which setting the time fields to zero would not.
    */
-  private toValueTimezone = (
+  public startOfDay = (value: Temporal.ZonedDateTime) =>
+    this.mapValue(value, (item) => item.startOfDay());
+
+  protected compareValues = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) =>
+    Temporal.ZonedDateTime.compare(value, comparing);
+
+  /** Express `comparing` in the timezone of `value` so wall-clock comparisons use the same zone. */
+  protected comparingFields = (
     value: Temporal.ZonedDateTime,
     comparing: Temporal.ZonedDateTime,
-  ): Temporal.ZonedDateTime => {
-    return comparing.withTimeZone(value.timeZoneId);
-  };
+  ): TemporalFields => this.getFields(comparing.withTimeZone(value.timeZoneId));
+}
 
-  private bothValid = (
-    value: Temporal.ZonedDateTime,
-    comparing: Temporal.ZonedDateTime,
-  ): boolean => {
-    return this.isValid(value) && this.isValid(comparing);
-  };
-
-  public isSameYear = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) => {
-    if (!this.bothValid(value, comparing)) {
-      return false;
-    }
-    return value.year === this.toValueTimezone(value, comparing).year;
-  };
-
-  public isSameMonth = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) => {
-    if (!this.bothValid(value, comparing)) {
-      return false;
-    }
-    const other = this.toValueTimezone(value, comparing);
-    return value.year === other.year && value.month === other.month;
-  };
-
-  public isSameDay = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) => {
-    if (!this.bothValid(value, comparing)) {
-      return false;
-    }
-    return (
-      Temporal.PlainDate.compare(
-        value.toPlainDate(),
-        this.toValueTimezone(value, comparing).toPlainDate(),
-      ) === 0
-    );
-  };
-
-  public isSameHour = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) => {
-    if (!this.bothValid(value, comparing)) {
-      return false;
-    }
-    const other = this.toValueTimezone(value, comparing);
-    return (
-      Temporal.PlainDate.compare(value.toPlainDate(), other.toPlainDate()) === 0 &&
-      value.hour === other.hour
-    );
-  };
-
-  public isAfter = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) => {
-    if (!this.bothValid(value, comparing)) {
-      return false;
-    }
-    return value.epochNanoseconds > comparing.epochNanoseconds;
-  };
-
-  public isAfterYear = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) => {
-    if (!this.bothValid(value, comparing)) {
-      return false;
-    }
-    return value.year > this.toValueTimezone(value, comparing).year;
-  };
-
-  public isAfterDay = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) => {
-    if (!this.bothValid(value, comparing)) {
-      return false;
-    }
-    return (
-      Temporal.PlainDate.compare(
-        value.toPlainDate(),
-        this.toValueTimezone(value, comparing).toPlainDate(),
-      ) > 0
-    );
-  };
-
-  public isBefore = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) => {
-    if (!this.bothValid(value, comparing)) {
-      return false;
-    }
-    return value.epochNanoseconds < comparing.epochNanoseconds;
-  };
-
-  public isBeforeYear = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) => {
-    if (!this.bothValid(value, comparing)) {
-      return false;
-    }
-    return value.year < this.toValueTimezone(value, comparing).year;
-  };
-
-  public isBeforeDay = (value: Temporal.ZonedDateTime, comparing: Temporal.ZonedDateTime) => {
-    if (!this.bothValid(value, comparing)) {
-      return false;
-    }
-    return (
-      Temporal.PlainDate.compare(
-        value.toPlainDate(),
-        this.toValueTimezone(value, comparing).toPlainDate(),
-      ) < 0
-    );
-  };
-
-  public isWithinRange = (
-    value: Temporal.ZonedDateTime,
-    [start, end]: [Temporal.ZonedDateTime, Temporal.ZonedDateTime],
-  ) => {
-    if (!this.isValid(value) || !this.isValid(start) || !this.isValid(end)) {
-      return false;
-    }
-    const epoch = value.epochNanoseconds;
-    return epoch >= start.epochNanoseconds && epoch <= end.epochNanoseconds;
-  };
-
-  public startOfYear = (value: Temporal.ZonedDateTime) => {
-    return this.mapValue(value, (zdt) => zdt.with({ month: 1, day: 1 }).startOfDay());
-  };
-
-  public startOfMonth = (value: Temporal.ZonedDateTime) => {
-    return this.mapValue(value, (zdt) => zdt.with({ day: 1 }).startOfDay());
-  };
-
-  public startOfWeek = (value: Temporal.ZonedDateTime) => {
-    const firstDay = this.getFirstDayOfWeek();
-    return this.mapValue(value, (zdt) =>
-      zdt.subtract({ days: (zdt.dayOfWeek - firstDay + 7) % 7 }).startOfDay(),
-    );
-  };
-
-  public startOfDay = (value: Temporal.ZonedDateTime) => {
-    return this.mapValue(value, (zdt) => zdt.startOfDay());
-  };
-
-  public endOfYear = (value: Temporal.ZonedDateTime) => {
-    return this.endOfDay(this.mapValue(value, (zdt) => zdt.with({ month: 12, day: 31 })));
-  };
-
-  public endOfMonth = (value: Temporal.ZonedDateTime) => {
-    return this.endOfDay(this.mapValue(value, (zdt) => zdt.with({ day: zdt.daysInMonth })));
-  };
-
-  public endOfWeek = (value: Temporal.ZonedDateTime) => {
-    return this.endOfDay(this.mapValue(this.startOfWeek(value), (zdt) => zdt.add({ days: 6 })));
-  };
-
-  public endOfDay = (value: Temporal.ZonedDateTime) => {
-    return this.mapValue(value, (zdt) =>
-      zdt.with({
-        hour: 23,
-        minute: 59,
-        second: 59,
-        millisecond: 999,
-        microsecond: 999,
-        nanosecond: 999,
-      }),
-    );
-  };
-
-  public addYears = (value: Temporal.ZonedDateTime, amount: number) => {
-    return this.mapValue(value, (zdt) => zdt.add({ years: amount }));
-  };
-
-  public addMonths = (value: Temporal.ZonedDateTime, amount: number) => {
-    return this.mapValue(value, (zdt) => zdt.add({ months: amount }));
-  };
-
-  public addWeeks = (value: Temporal.ZonedDateTime, amount: number) => {
-    return this.mapValue(value, (zdt) => zdt.add({ weeks: amount }));
-  };
-
-  public addDays = (value: Temporal.ZonedDateTime, amount: number) => {
-    return this.mapValue(value, (zdt) => zdt.add({ days: amount }));
-  };
-
-  public addHours = (value: Temporal.ZonedDateTime, amount: number) => {
-    return this.mapValue(value, (zdt) => zdt.add({ hours: amount }));
-  };
-
-  public addMinutes = (value: Temporal.ZonedDateTime, amount: number) => {
-    return this.mapValue(value, (zdt) => zdt.add({ minutes: amount }));
-  };
-
-  public addSeconds = (value: Temporal.ZonedDateTime, amount: number) => {
-    return this.mapValue(value, (zdt) => zdt.add({ seconds: amount }));
-  };
-
-  public getYear = (value: Temporal.ZonedDateTime) => {
-    return this.isValid(value) ? value.year : NaN;
-  };
-
-  public getMonth = (value: Temporal.ZonedDateTime) => {
-    return this.isValid(value) ? value.month - 1 : NaN;
-  };
-
-  public getDate = (value: Temporal.ZonedDateTime) => {
-    return this.isValid(value) ? value.day : NaN;
-  };
-
-  public getHours = (value: Temporal.ZonedDateTime) => {
-    return this.isValid(value) ? value.hour : NaN;
-  };
-
-  public getMinutes = (value: Temporal.ZonedDateTime) => {
-    return this.isValid(value) ? value.minute : NaN;
-  };
-
-  public getSeconds = (value: Temporal.ZonedDateTime) => {
-    return this.isValid(value) ? value.second : NaN;
-  };
-
-  public getMilliseconds = (value: Temporal.ZonedDateTime) => {
-    return this.isValid(value) ? value.millisecond : NaN;
-  };
-
-  /**
-   * Like {@link mapValue} but for setters: `with` uses the default `overflow: 'constrain'` so that
-   * out-of-range fields (for example the 31st of a 30-day month) clamp to the closest valid date,
-   * and an out-of-range or `NaN` input returns an invalid value instead of throwing, matching the
-   * other adapters.
-   */
-  private setValue = (
-    value: Temporal.ZonedDateTime,
-    fields: {
-      year?: number;
-      month?: number;
-      day?: number;
-      hour?: number;
-      minute?: number;
-      second?: number;
-      millisecond?: number;
-    },
-  ): Temporal.ZonedDateTime => {
-    if (!this.isValid(value)) {
-      return value;
-    }
-    const timezone = this.getTimezone(value);
-    try {
-      return this.createDate(value.with(fields), timezone);
-    } catch (error) {
-      return this.createInvalidDate(timezone);
-    }
-  };
-
-  public setYear = (value: Temporal.ZonedDateTime, year: number) => {
-    return this.setValue(value, { year });
-  };
-
-  public setMonth = (value: Temporal.ZonedDateTime, month: number) => {
-    return this.setValue(value, { month: month + 1 });
-  };
-
-  public setDate = (value: Temporal.ZonedDateTime, date: number) => {
-    return this.setValue(value, { day: date });
-  };
-
-  public setHours = (value: Temporal.ZonedDateTime, hours: number) => {
-    return this.setValue(value, { hour: hours });
-  };
-
-  public setMinutes = (value: Temporal.ZonedDateTime, minutes: number) => {
-    return this.setValue(value, { minute: minutes });
-  };
-
-  public setSeconds = (value: Temporal.ZonedDateTime, seconds: number) => {
-    return this.setValue(value, { second: seconds });
-  };
-
-  public setMilliseconds = (value: Temporal.ZonedDateTime, milliseconds: number) => {
-    return this.setValue(value, { millisecond: milliseconds });
-  };
-
-  public getDaysInMonth = (value: Temporal.ZonedDateTime) => {
-    return this.isValid(value) ? value.daysInMonth : NaN;
-  };
-
-  public getWeekArray = (value: Temporal.ZonedDateTime) => {
-    if (!this.isValid(value)) {
-      return [];
-    }
-    const timezone = this.getTimezone(value);
-    const start = this.startOfWeek(this.startOfMonth(value));
-    const end = this.endOfWeek(this.endOfMonth(value));
-
-    const weeks: Temporal.ZonedDateTime[][] = [];
-    let current = start;
-    let week: Temporal.ZonedDateTime[] = [];
-
-    while (Temporal.ZonedDateTime.compare(current, end) <= 0) {
-      week.push(this.createDate(current, timezone));
-      if (week.length === 7) {
-        weeks.push(week);
-        week = [];
-      }
-      current = current.add({ days: 1 }).startOfDay();
-    }
-
-    return weeks;
-  };
-
-  public getWeekNumber = (value: Temporal.ZonedDateTime) => {
-    if (!this.isValid(value)) {
-      return NaN;
-    }
-    const date = value.toPlainDate();
-    // ISO 8601 week number: the week is the one containing its Thursday.
-    const thursday = date.add({ days: 4 - date.dayOfWeek });
-    return Math.ceil(thursday.dayOfYear / 7);
-  };
-
-  public getDayOfWeek = (value: Temporal.ZonedDateTime) => {
-    if (!this.isValid(value)) {
-      return NaN;
-    }
-    const firstDay = this.getFirstDayOfWeek();
-    return ((value.dayOfWeek - firstDay + 7) % 7) + 1;
-  };
-
-  public getYearRange = ([start, end]: [Temporal.ZonedDateTime, Temporal.ZonedDateTime]) => {
-    const endDate = this.endOfYear(end);
-    const years: Temporal.ZonedDateTime[] = [];
-
-    let current = this.startOfYear(start);
-    while (this.isBefore(current, endDate)) {
-      years.push(current);
-      current = this.addYears(current, 1);
-    }
-
-    return years;
-  };
+declare module '@mui/x-date-pickers/models' {
+  interface PickerValidDateLookup {
+    temporal: Temporal.ZonedDateTime;
+  }
 }
