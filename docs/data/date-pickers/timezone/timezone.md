@@ -405,43 +405,65 @@ setDefaultTimezone('America/New_York');
 
 ### Working with plain types
 
-Every picker under a `LocalizationProvider` shares one value type.
-With `AdapterTemporal` that type is always `Temporal.ZonedDateTime`, so a `DatePicker` cannot return a `Temporal.PlainDate` and a `TimePicker` cannot return a `Temporal.PlainTime`.
+`Temporal` gives a date, a time and a date-time their own types, and only `Temporal.ZonedDateTime` carries a timezone.
+A birthday or an opening hour has no timezone, so storing one as a `ZonedDateTime` attaches a zone it does not have, which is what makes such values shift a day when they are read somewhere else.
 
-If your application stores plain types, convert them at the picker boundary using the methods `Temporal` already provides:
+Each Temporal type therefore has its own adapter:
 
-|               Plain type | From the picker value     | Back to a picker value                                          |
-| -----------------------: | :------------------------ | :-------------------------------------------------------------- |
-|     `Temporal.PlainDate` | `value.toPlainDate()`     | `date.toZonedDateTime(timezone)`                                |
-| `Temporal.PlainDateTime` | `value.toPlainDateTime()` | `date.toZonedDateTime(timezone)`                                |
-|     `Temporal.PlainTime` | `value.toPlainTime()`     | `date.toZonedDateTime({ timeZone: timezone, plainTime: time })` |
+|                        Adapter | Value type               | Use it for                            |
+| -----------------------------: | :----------------------- | :------------------------------------ |
+|              `AdapterTemporal` | `Temporal.ZonedDateTime` | An exact point in time                |
+|     `AdapterTemporalPlainDate` | `Temporal.PlainDate`     | A calendar date, with no time or zone |
+|     `AdapterTemporalPlainTime` | `Temporal.PlainTime`     | A time of day, with no date or zone   |
+| `AdapterTemporalPlainDateTime` | `Temporal.PlainDateTime` | A date and time, with no zone         |
 
-A `Temporal.PlainTime` carries no date, so it needs a reference day to become a `Temporal.ZonedDateTime`:
+The adapter comes from the closest `LocalizationProvider`, so pickers in the same tree can use different Temporal types by nesting a provider around each one:
 
 ```tsx
-const timezone = 'America/New_York';
+import 'temporal-polyfill/global';
 
-function ClockOut() {
+import { AdapterTemporalPlainDate } from '@mui/x-date-pickers/AdapterTemporalPlainDate';
+import { AdapterTemporalPlainTime } from '@mui/x-date-pickers/AdapterTemporalPlainTime';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+
+function Shift() {
+  const [day, setDay] = React.useState<Temporal.PlainDate | null>(null);
   const [clockOut, setClockOut] = React.useState<Temporal.PlainTime | null>(null);
-  const today = Temporal.Now.plainDateISO(timezone);
 
   return (
-    <TimePicker
-      value={
-        clockOut
-          ? today.toZonedDateTime({ timeZone: timezone, plainTime: clockOut })
-          : null
-      }
-      onChange={(newValue) => setClockOut(newValue?.toPlainTime() ?? null)}
-    />
+    <React.Fragment>
+      <LocalizationProvider dateAdapter={AdapterTemporalPlainDate}>
+        <DatePicker value={day} onChange={setDay} />
+      </LocalizationProvider>
+      <LocalizationProvider dateAdapter={AdapterTemporalPlainTime}>
+        <TimePicker value={clockOut} onChange={setClockOut} />
+      </LocalizationProvider>
+    </React.Fragment>
   );
 }
 ```
 
+Each adapter is published under its own import path, so an application that uses a single Temporal type gets that exact type from `onChange` with no narrowing.
+An application that mixes several sees the union of the types it imports.
+
 :::info
-Keep the timezone used for the conversion in sync with the `timezone` prop of your pickers.
-The picker preserves the timezone of the value it receives.
+The plain adapters report `isTimezoneCompatible: false`, since their values have no timezone to convert.
+The `timezone` prop and `setDefaultTimezone` only apply to `AdapterTemporal`.
 :::
+
+#### Converting between Temporal types
+
+When a value has to cross between types, `Temporal` provides the conversions:
+
+|               Plain type | From a `ZonedDateTime`    | Back to a `ZonedDateTime`                                       |
+| -----------------------: | :------------------------ | :-------------------------------------------------------------- |
+|     `Temporal.PlainDate` | `value.toPlainDate()`     | `date.toZonedDateTime(timezone)`                                |
+| `Temporal.PlainDateTime` | `value.toPlainDateTime()` | `dateTime.toZonedDateTime(timezone)`                            |
+|     `Temporal.PlainTime` | `value.toPlainTime()`     | `date.toZonedDateTime({ timeZone: timezone, plainTime: time })` |
+
+A `Temporal.PlainTime` carries no date, so it needs a reference day to become a `Temporal.ZonedDateTime`.
 
 ## More advanced examples
 

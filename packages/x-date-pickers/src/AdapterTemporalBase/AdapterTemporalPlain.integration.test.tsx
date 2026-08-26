@@ -7,11 +7,9 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { TimeField } from '@mui/x-date-pickers/TimeField';
 import { DateTimeField } from '@mui/x-date-pickers/DateTimeField';
-import {
-  AdapterTemporalPlainDate,
-  AdapterTemporalPlainDateTime,
-  AdapterTemporalPlainTime,
-} from '@mui/x-date-pickers/AdapterTemporal';
+import { AdapterTemporalPlainDate } from '@mui/x-date-pickers/AdapterTemporalPlainDate';
+import { AdapterTemporalPlainTime } from '@mui/x-date-pickers/AdapterTemporalPlainTime';
+import { AdapterTemporalPlainDateTime } from '@mui/x-date-pickers/AdapterTemporalPlainDateTime';
 
 describe('Temporal plain adapters - field integration', () => {
   const { render } = createRenderer();

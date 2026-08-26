@@ -1,12 +1,10 @@
 import { describe, it, expect } from 'vitest';
 // The Temporal API is not yet available in every runtime, so the tests install the polyfill globally.
 import 'temporal-polyfill/global';
-import {
-  AdapterTemporal,
-  AdapterTemporalPlainDate,
-  AdapterTemporalPlainDateTime,
-  AdapterTemporalPlainTime,
-} from '@mui/x-date-pickers/AdapterTemporal';
+import { AdapterTemporal } from '@mui/x-date-pickers/AdapterTemporal';
+import { AdapterTemporalPlainDate } from '@mui/x-date-pickers/AdapterTemporalPlainDate';
+import { AdapterTemporalPlainTime } from '@mui/x-date-pickers/AdapterTemporalPlainTime';
+import { AdapterTemporalPlainDateTime } from '@mui/x-date-pickers/AdapterTemporalPlainDateTime';
 
 describe('AdapterTemporalPlainDate', () => {
   const adapter = new AdapterTemporalPlainDate();

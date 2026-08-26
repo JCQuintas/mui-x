@@ -1,6 +1,6 @@
 import type { DateBuilderReturnType, MuiPickersAdapter, PickersTimezone } from '../models';
-import { AdapterTemporalBase, markInvalid } from './AdapterTemporalBase';
-import type { TemporalFields } from './AdapterTemporalBase';
+import { AdapterTemporalBase, markInvalid } from '../AdapterTemporalBase/AdapterTemporalBase';
+import type { TemporalFields } from '../AdapterTemporalBase/AdapterTemporalBase';
 
 /**
  * Logical timezone per value: `Temporal` cannot distinguish `system` from a named zone resolving to

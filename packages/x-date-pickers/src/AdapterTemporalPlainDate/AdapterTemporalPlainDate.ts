@@ -1,6 +1,6 @@
 import type { DateBuilderReturnType, MuiPickersAdapter, PickersTimezone } from '../models';
-import { AdapterTemporalBase } from './AdapterTemporalBase';
-import type { TemporalFields } from './AdapterTemporalBase';
+import { AdapterTemporalBase } from '../AdapterTemporalBase/AdapterTemporalBase';
+import type { TemporalFields } from '../AdapterTemporalBase/AdapterTemporalBase';
 
 /**
  * Adapter for `Temporal.PlainDate`: a calendar date with no time and no timezone.

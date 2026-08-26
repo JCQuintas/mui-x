@@ -1,0 +1,1 @@
+export { AdapterTemporalPlainTime } from './AdapterTemporalPlainTime';
