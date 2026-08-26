@@ -14,7 +14,13 @@ type AdapterTestRunner<P extends {}> = (
   params: ReturnType<typeof createPickerRenderer> & BuildFieldInteractionsResponse<P>,
 ) => void;
 
-const ADAPTERS: AdapterName[] = ['dayjs', 'date-fns', 'luxon', 'moment', 'temporal'];
+const ADAPTERS: AdapterName[] = [
+  'dayjs',
+  'date-fns',
+  'luxon',
+  'moment',
+  'temporal-zoned-date-time',
+];
 
 function innerDescribeAdapters<P extends {}>(
   title: string,

@@ -1,12 +1,15 @@
 import { onTestFinished, describe, it, expect } from 'vitest';
 // The Temporal API is not yet available in every runtime, so the tests install the polyfill globally.
 import 'temporal-polyfill/global';
-import { AdapterTemporal, setDefaultTimezone } from '@mui/x-date-pickers/AdapterTemporal';
+import {
+  AdapterTemporalZonedDateTime,
+  setDefaultTimezone,
+} from '@mui/x-date-pickers/AdapterTemporalZonedDateTime';
 import type { AdapterFormats } from '@mui/x-date-pickers/models';
 import { describeGregorianAdapter, TEST_DATE_ISO_STRING } from 'test/utils/pickers';
 
-describe('<AdapterTemporal />', () => {
-  describeGregorianAdapter(AdapterTemporal, {
+describe('<AdapterTemporalZonedDateTime />', () => {
+  describeGregorianAdapter(AdapterTemporalZonedDateTime, {
     formatDateTime: 'yyyy-MM-dd HH:mm:ss',
     setDefaultTimezone,
     frenchLocale: 'fr-FR',
@@ -21,13 +24,13 @@ describe('<AdapterTemporal />', () => {
         globalWithTemporal.Temporal = original;
       });
 
-      expect(() => new AdapterTemporal()).to.throw(/`Temporal` API is not available/);
+      expect(() => new AdapterTemporalZonedDateTime()).to.throw(/`Temporal` API is not available/);
     });
   });
 
   describe('Adapter localization', () => {
     describe('English', () => {
-      const adapter = new AdapterTemporal({ locale: 'en-US' });
+      const adapter = new AdapterTemporalZonedDateTime({ locale: 'en-US' });
 
       it('is12HourCycleInCurrentLocale: should have meridiem', () => {
         expect(adapter.is12HourCycleInCurrentLocale()).to.equal(true);
@@ -35,7 +38,7 @@ describe('<AdapterTemporal />', () => {
     });
 
     describe('Russian', () => {
-      const adapter = new AdapterTemporal({ locale: 'ru-RU' });
+      const adapter = new AdapterTemporalZonedDateTime({ locale: 'ru-RU' });
 
       it('getWeekArray: should start on Monday', () => {
         const date = adapter.date(TEST_DATE_ISO_STRING) as Temporal.ZonedDateTime;
@@ -53,7 +56,7 @@ describe('<AdapterTemporal />', () => {
     });
 
     it('Formatting', () => {
-      const adapter = new AdapterTemporal({ locale: 'en-US' });
+      const adapter = new AdapterTemporalZonedDateTime({ locale: 'en-US' });
 
       const expectDate = (format: keyof AdapterFormats, expectedWithEn: string) => {
         const date = adapter.date('2020-01-01T23:44:00.000Z', 'UTC') as Temporal.ZonedDateTime;

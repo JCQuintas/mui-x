@@ -175,7 +175,7 @@ export function assertTemporalAvailable() {
   if (typeof Temporal === 'undefined') {
     throw new Error(
       `MUI X Date Pickers: The \`Temporal\` API is not available in this environment.
-The \`AdapterTemporal\` adapter relies on the global \`Temporal\` object, which your runtime does not provide natively.
+The \`AdapterTemporalZonedDateTime\` adapter relies on the global \`Temporal\` object, which your runtime does not provide natively.
 Load a Temporal polyfill (for example \`import 'temporal-polyfill/global'\`) before creating the adapter.
 See https://mui.com/x/react-date-pickers/date-localization/ for more details.`,
     );

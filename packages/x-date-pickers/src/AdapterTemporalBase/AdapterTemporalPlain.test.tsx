@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 // The Temporal API is not yet available in every runtime, so the tests install the polyfill globally.
 import 'temporal-polyfill/global';
-import { AdapterTemporal } from '@mui/x-date-pickers/AdapterTemporal';
+import { AdapterTemporalZonedDateTime } from '@mui/x-date-pickers/AdapterTemporalZonedDateTime';
 import { AdapterTemporalPlainDate } from '@mui/x-date-pickers/AdapterTemporalPlainDate';
 import { AdapterTemporalPlainTime } from '@mui/x-date-pickers/AdapterTemporalPlainTime';
 import { AdapterTemporalPlainDateTime } from '@mui/x-date-pickers/AdapterTemporalPlainDateTime';
@@ -68,7 +68,7 @@ describe('AdapterTemporalPlainDate', () => {
   });
 
   it('should not shift the day when read from another timezone, unlike a zoned value', () => {
-    const zonedAdapter = new AdapterTemporal();
+    const zonedAdapter = new AdapterTemporalZonedDateTime();
     const zoned = zonedAdapter.date('2022-04-17T00:00:00', 'Asia/Tokyo') as Temporal.ZonedDateTime;
     const plain = adapter.date('2022-04-17') as Temporal.PlainDate;
 
@@ -167,14 +167,14 @@ describe('AdapterTemporalPlainDateTime', () => {
 
 describe('Temporal adapter family', () => {
   it('should expose a distinct lib name per adapter', () => {
-    expect(new AdapterTemporal().lib).to.equal('temporal');
+    expect(new AdapterTemporalZonedDateTime().lib).to.equal('temporal-zoned-date-time');
     expect(new AdapterTemporalPlainDate().lib).to.equal('temporal-plain-date');
     expect(new AdapterTemporalPlainTime().lib).to.equal('temporal-plain-time');
     expect(new AdapterTemporalPlainDateTime().lib).to.equal('temporal-plain-date-time');
   });
 
   it('should mark only the zoned adapter as timezone compatible', () => {
-    expect(new AdapterTemporal().isTimezoneCompatible).to.equal(true);
+    expect(new AdapterTemporalZonedDateTime().isTimezoneCompatible).to.equal(true);
     expect(new AdapterTemporalPlainDate().isTimezoneCompatible).to.equal(false);
     expect(new AdapterTemporalPlainTime().isTimezoneCompatible).to.equal(false);
     expect(new AdapterTemporalPlainDateTime().isTimezoneCompatible).to.equal(false);

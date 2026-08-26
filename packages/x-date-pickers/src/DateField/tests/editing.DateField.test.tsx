@@ -224,7 +224,7 @@ describe('<DateField /> - Editing', () => {
     });
 
     // Luxon/Temporal don't provide any day format with letter suffix
-    it.skipIf(adapter.lib === 'luxon' || adapter.lib === 'temporal')(
+    it.skipIf(adapter.lib === 'luxon' || adapter.lib === 'temporal-zoned-date-time')(
       'should support day with letter suffix',
       async () => {
         await testFieldChange({
@@ -240,7 +240,7 @@ describe('<DateField /> - Editing', () => {
 
     it('should respect leading zeros when shouldRespectLeadingZeros = true', async () => {
       await testFieldChange({
-        format: ['luxon', 'date-fns', 'temporal'].includes(adapter.lib) ? 'd' : 'D',
+        format: ['luxon', 'date-fns', 'temporal-zoned-date-time'].includes(adapter.lib) ? 'd' : 'D',
         shouldRespectLeadingZeros: true,
         keyStrokes: [
           { value: '1', expected: '1' },
@@ -252,7 +252,7 @@ describe('<DateField /> - Editing', () => {
 
     it('should not respect leading zeros when shouldRespectLeadingZeros = false', async () => {
       await testFieldChange({
-        format: ['luxon', 'date-fns', 'temporal'].includes(adapter.lib) ? 'd' : 'D',
+        format: ['luxon', 'date-fns', 'temporal-zoned-date-time'].includes(adapter.lib) ? 'd' : 'D',
         shouldRespectLeadingZeros: false,
         keyStrokes: [
           { value: '1', expected: '01' },

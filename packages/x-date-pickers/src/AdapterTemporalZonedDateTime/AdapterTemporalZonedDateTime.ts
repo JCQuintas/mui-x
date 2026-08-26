@@ -29,11 +29,11 @@ export function setDefaultTimezone(timezone?: PickersTimezone) {
  * Use it when the value is an exact point in time. For values that are conceptually timezone-less,
  * prefer `AdapterTemporalPlainDate`, `AdapterTemporalPlainTime` or `AdapterTemporalPlainDateTime`.
  */
-export class AdapterTemporal
+export class AdapterTemporalZonedDateTime
   extends AdapterTemporalBase<Temporal.ZonedDateTime>
   implements MuiPickersAdapter<string>
 {
-  public lib = 'temporal';
+  public lib = 'temporal-zoned-date-time';
 
   public isTimezoneCompatible = true;
 
